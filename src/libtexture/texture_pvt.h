@@ -37,6 +37,7 @@
 #define OPENIMAGEIO_TEXTURE_PVT_H
 
 #include "version.h"
+#include "../ptex.imageio/ptex/Ptexture.h"
 
 
 OIIO_NAMESPACE_ENTER
@@ -391,6 +392,14 @@ private:
                 TextureOpt &options, float weight, float *accum,
                 float *daccumds, float *daccumdt, float *daccumdr);
 
+    // Ptex
+    bool texture_lookup_ptex (TextureFile &texfile, PerThreadInfo *thread_info, 
+                         TextureOpt &options,
+                         float _s, float _t,
+                         float _dsdx, float _dtdx,
+                         float _dsdy, float _dtdy,
+                         float *result);
+
     /// Helper function to calculate the anisotropic aspect ratio from
     /// the major and minor ellipse axis lengths.  The "clamped" aspect
     /// ratio is returned (possibly adjusting major and minorlength to
@@ -463,6 +472,8 @@ private:
                             float dsdy, float dtdy, float sblur, float tblur);
 
     ImageCacheImpl *m_imagecache;
+    PtexPtr<PtexCache> m_ptexcache;
+
     Imath::M44f m_Mw2c;          ///< world-to-"common" matrix
     Imath::M44f m_Mc2w;          ///< common-to-world matrix
     bool m_gray_to_rgb;          ///< automatically copy gray to rgb channels?

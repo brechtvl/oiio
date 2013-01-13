@@ -238,6 +238,11 @@ TextureSystemImpl::TextureSystemImpl (ImageCache *imagecache)
     : hq_filter(NULL)
 {
     m_imagecache = (ImageCacheImpl *) imagecache;
+
+    long long max_mem = m_imagecache->max_memory_bytes();
+    int max_mem_int = (max_mem > INT_MAX)? INT_MAX: max_mem;
+    m_ptexcache.reset( PtexCache::create( m_imagecache->max_open_files(),
+                                          max_mem_int, true /* premultiply */));
     init ();
 }
 
@@ -692,16 +697,6 @@ TextureSystemImpl::texture (TextureHandle *texture_handle_,
                             float dsdx, float dtdx, float dsdy, float dtdy,
                             float *result)
 {
-    static const texture_lookup_prototype lookup_functions[] = {
-        // Must be in the same order as Mipmode enum
-        &TextureSystemImpl::texture_lookup,
-        &TextureSystemImpl::texture_lookup_nomip,
-        &TextureSystemImpl::texture_lookup_trilinear_mipmap,
-        &TextureSystemImpl::texture_lookup_trilinear_mipmap,
-        &TextureSystemImpl::texture_lookup
-    };
-    texture_lookup_prototype lookup = lookup_functions[(int)options.mipmode];
-
     PerThreadInfo *thread_info = (PerThreadInfo *)thread_info_;
     TextureFile *texturefile = (TextureFile *)texture_handle_;
     ImageCacheStatistics &stats (thread_info->m_stats);
@@ -710,6 +705,22 @@ TextureSystemImpl::texture (TextureHandle *texture_handle_,
 
     if (! texturefile  ||  texturefile->broken())
         return missing_texture (options, result);
+    
+    static ustring ptex_fileformat("ptex");
+
+    if (texturefile->fileformat() == ptex_fileformat) {
+        // Ptex exception
+        bool ok = texture_lookup_ptex(*texturefile, thread_info, options,
+                                      s, t, dsdx, dtdx, dsdy, dtdy, result);
+
+        const ImageSpec &spec (texturefile->spec(options.subimage, 0));
+        int actualchannels = Imath::clamp (spec.nchannels - options.firstchannel, 0, options.nchannels);
+        options.actualchannels = actualchannels;
+
+        if (actualchannels < options.nchannels)
+            fill_channels (spec, options, result);
+        return ok;
+    }
 
     if (options.subimagename) {
         // If subimage was specified by name, figure out its index.
@@ -751,6 +762,16 @@ TextureSystemImpl::texture (TextureHandle *texture_handle_,
 
     int actualchannels = Imath::clamp (spec.nchannels - options.firstchannel, 0, options.nchannels);
     options.actualchannels = actualchannels;
+
+    static const texture_lookup_prototype lookup_functions[] = {
+        // Must be in the same order as Mipmode enum
+        &TextureSystemImpl::texture_lookup,
+        &TextureSystemImpl::texture_lookup_nomip,
+        &TextureSystemImpl::texture_lookup_trilinear_mipmap,
+        &TextureSystemImpl::texture_lookup_trilinear_mipmap,
+        &TextureSystemImpl::texture_lookup
+    };
+    texture_lookup_prototype lookup = lookup_functions[(int)options.mipmode];
 
     bool ok = (this->*lookup) (*texturefile, thread_info, options,
                                s, t, dsdx, dtdx, dsdy, dtdy, result);
@@ -2002,6 +2023,52 @@ TextureSystemImpl::unit_test_texture ()
         visualize_ellipse (Strutil::format("%d.tif", 100+i),
                            dsdx, dtdx, dsdy, dtdy, blur, blur);
     }
+}
+
+bool
+TextureSystemImpl::texture_lookup_ptex (TextureFile &texturefile,
+                            PerThreadInfo *thread_info, 
+                            TextureOpt &options,
+                            float s, float t,
+                            float dsdx, float dtdx,
+                            float dsdy, float dtdy,
+                            float *result)
+{
+    Ptex::String error;
+    ustring filename = texturefile.filename();
+    PtexPtr<PtexTexture> r (m_ptexcache->get (filename.c_str(), error));
+
+    if (!r)
+        return false;
+
+    PtexFilter::FilterType filter_type;
+    bool filter_lerp = false;
+    float filter_sharpness = 1.0f;
+
+    switch (options.interpmode) {
+        case TextureOpt::InterpClosest :
+            filter_type = PtexFilter::f_point;
+            break;
+        case TextureOpt::InterpBilinear :
+            filter_type = PtexFilter::f_bilinear;
+            break;
+        case TextureOpt::InterpBicubic :
+        case TextureOpt::InterpSmartBicubic :
+            filter_type = PtexFilter::f_bicubic;
+            break;
+    }
+
+    PtexFilter::Options opts (filter_type, filter_lerp, filter_sharpness);
+    PtexPtr<PtexFilter> f (PtexFilter::getFilter(r, opts));
+    int faceid = options.subimage;
+
+    float eval_width = 1.0f;
+    float eval_blur = 0.0f;
+    
+    f->eval (result, options.firstchannel, options.nchannels, faceid, s, t,
+             dsdx, dtdx, dsdy, dtdy, eval_width, eval_blur);
+
+    return true;
 }
 
 

@@ -638,6 +638,7 @@ public:
 
     // Retrieve options
     int max_open_files () const { return m_max_open_files; }
+    long long max_memory_bytes() const { return m_max_memory_bytes; }
     const std::string &searchpath () const { return m_searchpath; }
     const std::string &plugin_searchpath () const { return m_plugin_searchpath; }
     int autotile () const { return m_autotile; }
