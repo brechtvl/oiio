@@ -218,6 +218,8 @@ private:
     std::string m_rle_buffer;
     //Index of the transparent color, if any (for Indexed color mode only)
     int16_t m_transparency_index;
+    ///< Do not convert unassociated alpha
+    bool m_keep_unassociated_alpha;
 
     FileHeader m_header;
     ColorModeData m_color_data;
@@ -531,6 +533,10 @@ PSDInput::open (const std::string &name, ImageSpec &newspec,
                 const ImageSpec &config)
 {
     m_WantRaw = config.get_int_attribute ("psd:RawData", 0) != 0;
+
+    if (config.get_int_attribute("oiio:UnassociatedAlpha", 0) == 1)
+        m_keep_unassociated_alpha = true;
+
     return open (name, newspec);
 }
 
@@ -541,6 +547,41 @@ PSDInput::close ()
 {
     init();
     return true;
+}
+
+
+
+template <class T>
+static void
+associateAlpha (T * data, int size, int channels, int alpha_channel, float gamma)
+{
+    T max = std::numeric_limits<T>::max();
+    if (gamma == 1) {
+        for (int x = 0;  x < size;  ++x, data += channels)
+            for (int c = 0;  c < channels;  c++)
+                if (c != alpha_channel){
+                    unsigned int f = data[c];
+                    data[c] = (f * data[alpha_channel]) / max;
+                }
+    }
+    else { //With gamma correction
+        float inv_max = 1.0 / max;
+        for (int x = 0;  x < size;  ++x, data += channels) {
+            float alpha_associate = pow(data[alpha_channel]*inv_max, gamma);
+            // We need to transform to linear space, associate the alpha, and
+            // then transform back.  That is, if D = data[c], we want
+            //
+            // D' = max * ( (D/max)^(1/gamma) * (alpha/max) ) ^ gamma
+            //
+            // This happens to simplify to something which looks like
+            // multiplying by a nonlinear alpha:
+            //
+            // D' = D * (alpha/max)^gamma
+            for (int c = 0;  c < channels;  c++)
+                if (c != alpha_channel)
+                    data[c] = static_cast<T>(data[c] * alpha_associate);
+        }
+    }
 }
 
 
@@ -588,6 +629,18 @@ PSDInput::read_native_scanline (int y, int z, void *data)
         if (!convert_to_rgb (dst))
             return false;
     }
+
+    // PSD specifically dictates unassociated (un-"premultiplied") alpha.
+    // Convert to associated unless we were requested not to do so.
+    if (m_spec.alpha_channel != -1 && !m_keep_unassociated_alpha) {
+        int size = m_spec.width * m_spec.height;
+        float gamma = m_spec.get_float_attribute ("oiio:Gamma", 1.0f);
+
+        associateAlpha ((unsigned char *)data, size,
+                        m_spec.nchannels, m_spec.alpha_channel,
+                        gamma);
+    }
+
     return true;
 }
 
@@ -610,6 +663,7 @@ PSDInput::init ()
     m_channel_buffers.clear ();
     m_rle_buffer.clear ();
     m_transparency_index = -1;
+    m_keep_unassociated_alpha = false;
 }
 
 
@@ -1514,6 +1568,10 @@ PSDInput::setup ()
         if (transparency)
             channels.push_back (layer.channel_id_map[ChannelID_Transparency]);
     }
+
+    if (m_spec.alpha_channel != -1)
+        if (m_keep_unassociated_alpha)
+            m_spec.attribute ("oiio:UnassociatedAlpha", 1);
 }
 
 
