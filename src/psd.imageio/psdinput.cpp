@@ -218,8 +218,11 @@ private:
     std::string m_rle_buffer;
     //Index of the transparent color, if any (for Indexed color mode only)
     int16_t m_transparency_index;
+    //Background color in RGB
+    int8_t m_background_color[4];
     ///< Do not convert unassociated alpha
     bool m_keep_unassociated_alpha;
+
 
     FileHeader m_header;
     ColorModeData m_color_data;
@@ -251,6 +254,8 @@ private:
     bool load_resource_1005 (uint32_t length);
     //Alpha Channel Names
     bool load_resource_1006 (uint32_t length);
+    //Background Color
+    bool load_resource_1010 (uint32_t length);
     //JPEG thumbnail (Photoshop 4.0)
     bool load_resource_1033 (uint32_t length);
     //JPEG thumbnail (Photoshop 5.0)
@@ -397,6 +402,7 @@ const PSDInput::ResourceLoader PSDInput::resource_loaders[] =
 {
     ADD_LOADER(1005),
     ADD_LOADER(1006),
+    ADD_LOADER(1010),
     ADD_LOADER(1033),
     ADD_LOADER(1036),
     ADD_LOADER(1047),
@@ -553,8 +559,9 @@ PSDInput::close ()
 
 template <class T>
 static void
-associateAlpha (T * data, int size, int channels, int alpha_channel, float gamma)
+associateAlpha (T * data, int size, int channels, int alpha_channel, float gamma, int8_t * background)
 {
+#if 0
     T max = std::numeric_limits<T>::max();
     if (gamma == 1) {
         for (int x = 0;  x < size;  ++x, data += channels)
@@ -562,6 +569,11 @@ associateAlpha (T * data, int size, int channels, int alpha_channel, float gamma
                 if (c != alpha_channel){
                     unsigned int f = data[c];
                     data[c] = (f * data[alpha_channel]) / max;
+
+                    data[c] *= background[c];
+
+                    if (data[c] < data[alpha_channel])
+                        data[c] = 0.0;
                 }
     }
     else { //With gamma correction
@@ -582,6 +594,7 @@ associateAlpha (T * data, int size, int channels, int alpha_channel, float gamma
                     data[c] = static_cast<T>(data[c] * alpha_associate);
         }
     }
+#endif
 }
 
 
@@ -638,7 +651,8 @@ PSDInput::read_native_scanline (int y, int z, void *data)
 
         associateAlpha ((unsigned char *)data, size,
                         m_spec.nchannels, m_spec.alpha_channel,
-                        gamma);
+                        gamma,
+                        m_background_color);
     }
 
     return true;
@@ -664,6 +678,9 @@ PSDInput::init ()
     m_rle_buffer.clear ();
     m_transparency_index = -1;
     m_keep_unassociated_alpha = false;
+    m_background_color[0] = 0xFF;
+    m_background_color[1] = 0xFF;
+    m_background_color[2] = 0xFF;
 }
 
 
@@ -945,6 +962,25 @@ PSDInput::load_resource_1006 (uint32_t length)
         m_alpha_names.push_back (name);
     }
     return check_io ();
+}
+
+
+
+bool
+PSDInput::load_resource_1010 (uint32_t length)
+{
+    int8_t color_id;
+    int32_t color;
+
+    read_bige<int8_t> (color_id);
+    read_bige<int32_t> (color);
+
+    // RGB is the only supported mode at the moment
+    m_background_color[0] = (color) & 0xFF;
+    m_background_color[1] = (color >> 8) & 0xFF;
+    m_background_color[2] = (color >> 16) & 0xFF;
+
+    return true;
 }
 
 
