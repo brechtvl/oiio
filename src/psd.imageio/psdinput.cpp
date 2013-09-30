@@ -704,9 +704,9 @@ PSDInput::read_native_scanline (int y, int z, void *data)
     // Convert to associated unless we were requested not to do so.
     if (m_spec.alpha_channel != -1) {
         if(m_keep_unassociated_alpha)
-            native_to_assocalpha (m_spec.width, data);
-        else
             native_to_unassalpha (m_spec.width, data);
+        else
+            native_to_assocalpha (m_spec.width, data);
     }
 
     return true;
