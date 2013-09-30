@@ -218,8 +218,8 @@ private:
     std::string m_rle_buffer;
     //Index of the transparent color, if any (for Indexed color mode only)
     int16_t m_transparency_index;
-    //Background color in RGB
-    int8_t m_background_color[4];
+    //Background color
+    double m_background_color[4];
     ///< Do not convert unassociated alpha
     bool m_keep_unassociated_alpha;
 
@@ -318,6 +318,47 @@ private:
     // store the RGB data in dst
     //-Modify validate_header function to not reject that color mode
     //-Modify convert_to_rgb function to call <colormode>_to_rgb
+
+    // Convert from photoshop native alpha to
+    // associated/premultiplied
+    template <class T>
+    void associateAlpha (T *data, int size, int nchannels, int alpha_channel, double *background) {
+        // RGB = CompRGB - (1 - alpha) * Background;
+        double scale = std::numeric_limits<T>::is_integer ?
+            1.0/std::numeric_limits<T>::max() : 1.0;
+
+        for ( ;  size;  --size, data += nchannels)
+            for (int c = 0;  c < nchannels;  c++)
+                if (c != alpha_channel) {
+                    double alpha = data[alpha_channel] * scale;
+                    double f = data[c];
+
+                    data[c] = f - (((1.0 - alpha) * background[c]) / scale);
+                }
+
+    }
+
+    template <class T>
+    void unassociateAlpha (T *data, int size, int nchannels, int alpha_channel, double *background) {
+        // RGB = (CompRGB - (1 - alpha) * Background) / alpha
+        double scale = std::numeric_limits<T>::is_integer ?
+            1.0/std::numeric_limits<T>::max() : 1.0;
+
+        for ( ;  size;  --size, data += nchannels)
+            for (int c = 0;  c < nchannels;  c++)
+                if (c != alpha_channel) {
+                    double alpha = data[alpha_channel] * scale;
+                    double f = data[c];
+
+                    if (alpha > 0.0)
+                        data[c] = (f - (((1.0 - alpha) * background[c]) / scale)) / alpha ;
+                    else
+                        data[c] = 0;
+                }
+    }
+
+    void native_to_assocalpha (int n, void *data);
+    void native_to_unassalpha (int n, void *data);
 
     //Check if m_file is good. If not, set error message and return false.
     bool check_io ();
@@ -557,48 +598,6 @@ PSDInput::close ()
 
 
 
-template <class T>
-static void
-associateAlpha (T * data, int size, int channels, int alpha_channel, float gamma, int8_t * background)
-{
-#if 0
-    T max = std::numeric_limits<T>::max();
-    if (gamma == 1) {
-        for (int x = 0;  x < size;  ++x, data += channels)
-            for (int c = 0;  c < channels;  c++)
-                if (c != alpha_channel){
-                    unsigned int f = data[c];
-                    data[c] = (f * data[alpha_channel]) / max;
-
-                    data[c] *= background[c];
-
-                    if (data[c] < data[alpha_channel])
-                        data[c] = 0.0;
-                }
-    }
-    else { //With gamma correction
-        float inv_max = 1.0 / max;
-        for (int x = 0;  x < size;  ++x, data += channels) {
-            float alpha_associate = pow(data[alpha_channel]*inv_max, gamma);
-            // We need to transform to linear space, associate the alpha, and
-            // then transform back.  That is, if D = data[c], we want
-            //
-            // D' = max * ( (D/max)^(1/gamma) * (alpha/max) ) ^ gamma
-            //
-            // This happens to simplify to something which looks like
-            // multiplying by a nonlinear alpha:
-            //
-            // D' = D * (alpha/max)^gamma
-            for (int c = 0;  c < channels;  c++)
-                if (c != alpha_channel)
-                    data[c] = static_cast<T>(data[c] * alpha_associate);
-        }
-    }
-#endif
-}
-
-
-
 bool
 PSDInput::seek_subimage (int subimage, int miplevel, ImageSpec &newspec)
 {
@@ -611,6 +610,64 @@ PSDInput::seek_subimage (int subimage, int miplevel, ImageSpec &newspec)
     m_subimage = subimage;
     newspec = m_spec = m_specs[subimage];
     return true;
+}
+
+
+
+void
+PSDInput::native_to_assocalpha (int n, void *data)
+{
+    switch (m_spec.format.basetype) {
+    case TypeDesc::UINT8:
+        associateAlpha ((unsigned char *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    case TypeDesc::INT8:
+        associateAlpha ((char *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    case TypeDesc::UINT16:
+        associateAlpha ((unsigned short *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    case TypeDesc::INT16:
+        associateAlpha ((short *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    case TypeDesc::FLOAT:
+        associateAlpha ((float *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    case TypeDesc::DOUBLE:
+        associateAlpha ((double *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    default:
+        break;
+    }
+}
+
+
+
+void
+PSDInput::native_to_unassalpha (int n, void *data)
+{
+    switch (m_spec.format.basetype) {
+    case TypeDesc::UINT8:
+        unassociateAlpha ((unsigned char *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    case TypeDesc::INT8:
+        unassociateAlpha ((char *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    case TypeDesc::UINT16:
+        unassociateAlpha ((unsigned short *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    case TypeDesc::INT16:
+        unassociateAlpha ((short *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    case TypeDesc::FLOAT:
+        unassociateAlpha ((float *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    case TypeDesc::DOUBLE:
+        unassociateAlpha ((double *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -645,14 +702,11 @@ PSDInput::read_native_scanline (int y, int z, void *data)
 
     // PSD specifically dictates unassociated (un-"premultiplied") alpha.
     // Convert to associated unless we were requested not to do so.
-    if (m_spec.alpha_channel != -1 && !m_keep_unassociated_alpha) {
-        int size = m_spec.width * m_spec.height;
-        float gamma = m_spec.get_float_attribute ("oiio:Gamma", 1.0f);
-
-        associateAlpha ((unsigned char *)data, size,
-                        m_spec.nchannels, m_spec.alpha_channel,
-                        gamma,
-                        m_background_color);
+    if (m_spec.alpha_channel != -1) {
+        if(m_keep_unassociated_alpha)
+            native_to_assocalpha (m_spec.width, data);
+        else
+            native_to_unassalpha (m_spec.width, data);
     }
 
     return true;
@@ -678,9 +732,10 @@ PSDInput::init ()
     m_rle_buffer.clear ();
     m_transparency_index = -1;
     m_keep_unassociated_alpha = false;
-    m_background_color[0] = 0xFF;
-    m_background_color[1] = 0xFF;
-    m_background_color[2] = 0xFF;
+    m_background_color[0] = 1.0;
+    m_background_color[1] = 1.0;
+    m_background_color[2] = 1.0;
+    m_background_color[3] = 1.0;
 }
 
 
@@ -969,16 +1024,17 @@ PSDInput::load_resource_1006 (uint32_t length)
 bool
 PSDInput::load_resource_1010 (uint32_t length)
 {
+    const double int8_to_dbl = 1.0 / 0xFF;
     int8_t color_id;
     int32_t color;
 
     read_bige<int8_t> (color_id);
     read_bige<int32_t> (color);
 
-    // RGB is the only supported mode at the moment
-    m_background_color[0] = (color) & 0xFF;
-    m_background_color[1] = (color >> 8) & 0xFF;
-    m_background_color[2] = (color >> 16) & 0xFF;
+    m_background_color[0] = ((color) & 0xFF) * int8_to_dbl;
+    m_background_color[1] = ((color >> 8) & 0xFF) * int8_to_dbl;
+    m_background_color[2] = ((color >> 16) & 0xFF) * int8_to_dbl;
+    m_background_color[3] = ((color >> 24) & 0xFF) * int8_to_dbl;
 
     return true;
 }
