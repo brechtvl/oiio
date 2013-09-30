@@ -702,7 +702,7 @@ PSDInput::read_native_scanline (int y, int z, void *data)
 
     // PSD specifically dictates unassociated (un-"premultiplied") alpha.
     // Convert to associated unless we were requested not to do so.
-    if (m_spec.alpha_channel != -1) {
+    if (m_spec.alpha_channel != -1 && m_subimage == 0 ) {
         if(m_keep_unassociated_alpha)
             native_to_unassalpha (m_spec.width, data);
         else
