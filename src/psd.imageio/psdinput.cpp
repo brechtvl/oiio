@@ -322,7 +322,7 @@ private:
     // Convert from photoshop native alpha to
     // associated/premultiplied
     template <class T>
-    void associateAlpha (T *data, int size, int nchannels, int alpha_channel, double *background) {
+    void removeBackground (T *data, int size, int nchannels, int alpha_channel, double *background) {
         // RGB = CompRGB - (1 - alpha) * Background;
         double scale = std::numeric_limits<T>::is_integer ?
             1.0/std::numeric_limits<T>::max() : 1.0;
@@ -333,7 +333,7 @@ private:
                     double alpha = data[alpha_channel] * scale;
                     double f = data[c];
 
-                    data[c] = f - (((1.0 - alpha) * background[c]) / scale);
+                    data[c] = T (f - (((1.0 - alpha) * background[c]) / scale));
                 }
 
     }
@@ -351,14 +351,27 @@ private:
                     double f = data[c];
 
                     if (alpha > 0.0)
-                        data[c] = (f - (((1.0 - alpha) * background[c]) / scale)) / alpha ;
+                        data[c] = T ((f - (((1.0 - alpha) * background[c]) / scale)) / alpha) ;
                     else
                         data[c] = 0;
                 }
     }
 
-    void native_to_assocalpha (int n, void *data);
-    void native_to_unassalpha (int n, void *data);
+    template <class T>
+    void associateAlpha (T *data, int size, int nchannels, int alpha_channel) {
+        double scale = std::numeric_limits<T>::is_integer ?
+            1.0/std::numeric_limits<T>::max() : 1.0;
+        for ( ;  size;  --size, data += nchannels)
+            for (int c = 0;  c < nchannels;  c++)
+                if (c != alpha_channel) {
+                    double f = data[c];
+                    data[c] = T (f * (data[alpha_channel] * scale));
+                }
+    }
+
+    void background_to_assocalpha (int n, void *data);
+    void background_to_unassalpha (int n, void *data);
+    void unassalpha_to_assocalpha (int n, void *data);
 
     //Check if m_file is good. If not, set error message and return false.
     bool check_io ();
@@ -615,26 +628,17 @@ PSDInput::seek_subimage (int subimage, int miplevel, ImageSpec &newspec)
 
 
 void
-PSDInput::native_to_assocalpha (int n, void *data)
+PSDInput::background_to_assocalpha (int n, void *data)
 {
     switch (m_spec.format.basetype) {
     case TypeDesc::UINT8:
-        associateAlpha ((unsigned char *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
-        break;
-    case TypeDesc::INT8:
-        associateAlpha ((char *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        removeBackground ((unsigned char *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
         break;
     case TypeDesc::UINT16:
-        associateAlpha ((unsigned short *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+        removeBackground ((unsigned short *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
         break;
-    case TypeDesc::INT16:
-        associateAlpha ((short *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
-        break;
-    case TypeDesc::FLOAT:
-        associateAlpha ((float *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
-        break;
-    case TypeDesc::DOUBLE:
-        associateAlpha ((double *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+    case TypeDesc::UINT32:
+        removeBackground ((unsigned long *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
         break;
     default:
         break;
@@ -644,26 +648,37 @@ PSDInput::native_to_assocalpha (int n, void *data)
 
 
 void
-PSDInput::native_to_unassalpha (int n, void *data)
+PSDInput::background_to_unassalpha (int n, void *data)
 {
     switch (m_spec.format.basetype) {
     case TypeDesc::UINT8:
         unassociateAlpha ((unsigned char *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
         break;
-    case TypeDesc::INT8:
-        unassociateAlpha ((char *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
-        break;
     case TypeDesc::UINT16:
         unassociateAlpha ((unsigned short *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
         break;
-    case TypeDesc::INT16:
-        unassociateAlpha ((short *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+    case TypeDesc::UINT32:
+        unassociateAlpha ((unsigned long *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
         break;
-    case TypeDesc::FLOAT:
-        unassociateAlpha ((float *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+    default:
         break;
-    case TypeDesc::DOUBLE:
-        unassociateAlpha ((double *)data, n, m_spec.nchannels, m_spec.alpha_channel, m_background_color);
+    }
+}
+
+
+
+void
+PSDInput::unassalpha_to_assocalpha (int n, void *data)
+{
+    switch (m_spec.format.basetype) {
+    case TypeDesc::UINT8:
+        associateAlpha ((unsigned char *)data, n, m_spec.nchannels, m_spec.alpha_channel);
+        break;
+    case TypeDesc::UINT16:
+        associateAlpha ((unsigned short *)data, n, m_spec.nchannels, m_spec.alpha_channel);
+        break;
+    case TypeDesc::UINT32:
+        associateAlpha ((unsigned long *)data, n, m_spec.nchannels, m_spec.alpha_channel);
         break;
     default:
         break;
@@ -702,11 +717,33 @@ PSDInput::read_native_scanline (int y, int z, void *data)
 
     // PSD specifically dictates unassociated (un-"premultiplied") alpha.
     // Convert to associated unless we were requested not to do so.
-    if (m_spec.alpha_channel != -1 && m_subimage == 0 ) {
-        if(m_keep_unassociated_alpha)
-            native_to_unassalpha (m_spec.width, data);
-        else
-            native_to_assocalpha (m_spec.width, data);
+    //
+    // Composite layer (subimage 0) is mixed with background, which
+    // affects the alpha (aka white borders if background not removed).
+    //
+    // Composite:
+    // m_keep_unassociated_alpha true: remove background and convert to unassociated
+    // m_keep_unassociated_alpha false: remove background only
+    //
+    // Other Layers:
+    // m_keep_unassociated_alpha true: do nothing
+    // m_keep_unassociated_alpha false: convert to associated
+    //
+    //
+    if (m_spec.alpha_channel != -1) {
+        if (m_subimage == 0) {
+            if (m_keep_unassociated_alpha) {
+                background_to_unassalpha (m_spec.width, data);
+            } else {
+                background_to_assocalpha (m_spec.width, data);
+            }
+        } else {
+            if (m_keep_unassociated_alpha) {
+                // do nothing - leave as it is
+            } else {
+                unassalpha_to_assocalpha (m_spec.width, data);
+            }
+        }
     }
 
     return true;
