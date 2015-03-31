@@ -1082,6 +1082,9 @@ OpenEXRInput::read_native_tiles (int xbegin, int xend, int ybegin, int yend,
     boost::scoped_array<char> tmpbuf;
     void *origdata = data;
     if (whole_width != (xend-xbegin) || whole_height != (yend-ybegin)) {
+        // fill uninitialized memory with NaN's
+        memset(data, 254, nxtiles * nytiles * m_spec.tile_bytes(true));
+
         // Deal with the case of reading not a whole number of tiles --
         // OpenEXR will happily overwrite user memory in this case.
         tmpbuf.reset (new char [nxtiles * nytiles * m_spec.tile_bytes(true)]);

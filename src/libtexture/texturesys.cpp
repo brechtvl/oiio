@@ -2347,6 +2347,8 @@ TextureSystemImpl::sample_bicubic (int nsamples, const float *s_,
         accum += ((1.0f - nonfill) * options.fill) * (simd::float4::One() - channel_mask);
     }
 
+    ASSERT(isfinite(accum[3]));
+
     *accum_ = accum;
     if (daccumds_) {
         *daccumds_ = daccumds * channel_mask;
