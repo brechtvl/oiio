@@ -38,7 +38,7 @@ command += oiiotool ("-echo cicp: test16.png --eraseattrib Software --printinfo"
 # FIXME: The following test fails on Windows
 # Workaround is to avoid partial modifications and always specify all CICP values
 # command += oiiotool ("-echo modified_cicp: test16.png --eraseattrib Software --cicp ,,,0 --printinfo")
-command += oiiotool ("-echo removed_cicp: test16.png --eraseattrib Software --cicp '' --printinfo")
+command += oiiotool ("-echo removed_cicp: test16.png --eraseattrib Software --cicp \"\" --printinfo")
 
 outputs = [ "test16.png", "out.txt" ]
 
