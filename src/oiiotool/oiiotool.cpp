@@ -2283,6 +2283,10 @@ public:
                 vals[i] = existing[i];
         }
         Strutil::extract_from_list_string<int>(vals, cicp);
+        fprintf(stderr, "impl >%s<\n", cicp.str().c_str());
+        for (int i : vals) {
+            fprintf(stderr, "val %d\n", i);
+        }
         img[0]->specmod().attribute("CICP", TypeDesc(TypeDesc::INT, 4),
                                     vals.data());
         return true;
