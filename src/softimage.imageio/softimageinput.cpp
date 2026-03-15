@@ -340,9 +340,9 @@ SoftimageInput::read_pixels_pure_run_length(
 
         if (data) {
             // data pointer is set so we're supposed to write data there
-            size_t pixelSize   = pixelChannelSize * channels.size();
-            uint8_t* pixelData = new uint8_t[pixelSize];
-            if (fread(pixelData, pixelSize, 1, m_fd) != pixelSize)
+            size_t pixelSize = pixelChannelSize * channels.size();
+            std::vector<uint8_t> pixelData(pixelSize);
+            if (fread(pixelData.data(), pixelSize, 1, m_fd) != pixelSize)
                 return false;
 
             // Now we've got the pixel value we need to push it into the data
@@ -365,7 +365,6 @@ SoftimageInput::read_pixels_pure_run_length(
                     }
                 }
             }
-            delete[] pixelData;
         } else {
             // data pointer is null so we should just seek to the next scanline
             // If the seek fails return false
@@ -463,9 +462,9 @@ SoftimageInput::read_pixels_mixed_run_length(
 
             if (data) {
                 // data pointer is set so we're supposed to write data there
-                size_t pixelSize   = pixelChannelSize * channels.size();
-                uint8_t* pixelData = new uint8_t[pixelSize];
-                if (fread(pixelData, 1, pixelSize, m_fd) != pixelSize)
+                size_t pixelSize = pixelChannelSize * channels.size();
+                std::vector<uint8_t> pixelData(pixelSize);
+                if (fread(pixelData.data(), 1, pixelSize, m_fd) != pixelSize)
                     return false;
 
                 // Now we've got the pixel value we need to push it into
@@ -492,7 +491,6 @@ SoftimageInput::read_pixels_mixed_run_length(
                         }
                     }
                 }
-                delete[] pixelData;
             } else {
                 // data pointer is null so we should just seek to the
                 // next scanline.  If the seek fails return false.
