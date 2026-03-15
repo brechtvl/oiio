@@ -600,6 +600,10 @@ IffInput::readimg()
 
             // get image size
             // skip coordinates, uint16_t (2) * 4 = 8
+            if (chunksize < 8) {
+                errorfmt("IFF tile chunk size {} too small", chunksize);
+                return false;
+            }
             uint32_t image_size = chunksize - 8;
 
             // check tile
@@ -673,10 +677,14 @@ IffInput::readimg()
                         }
                     }
                 } else {
-                    uint8_t* p = scratch.data();
-                    span<uint8_t> input(p,
-                                        (ymax - ymin + 1) * tw
-                                            * m_header.rgba_channels_bytes());
+                    uint8_t* p           = scratch.data();
+                    size_t expected_size = size_t(ymax - ymin + 1) * tw
+                                           * m_header.rgba_channels_bytes();
+                    if (expected_size > scratch.size()) {
+                        errorfmt("IFF uncompressed tile data too small");
+                        return false;
+                    }
+                    span<uint8_t> input(p, expected_size);
 
                     int sy = 0;
                     for (uint16_t py = ymin; py <= ymax; ++py, ++sy) {
@@ -776,10 +784,14 @@ IffInput::readimg()
                         }
                     }
                 } else {
-                    uint8_t* p = scratch.data();
-                    span<uint8_t> input(p,
-                                        (ymax - ymin + 1) * tw
-                                            * m_header.rgba_channels_bytes());
+                    uint8_t* p           = scratch.data();
+                    size_t expected_size = size_t(ymax - ymin + 1) * tw
+                                           * m_header.rgba_channels_bytes();
+                    if (expected_size > scratch.size()) {
+                        errorfmt("IFF uncompressed tile data too small");
+                        return false;
+                    }
+                    span<uint8_t> input(p, expected_size);
 
                     int sy = 0;
                     for (uint16_t py = ymin; py <= ymax; ++py, ++sy) {
@@ -854,6 +866,10 @@ IffInput::readimg()
 
             // get image size
             // skip coordinates, uint16_t (2) * 4 = 8
+            if (chunksize < 8) {
+                errorfmt("IFF tile chunk size {} too small", chunksize);
+                return false;
+            }
             uint32_t image_size = chunksize - 8;
 
             // check tile
