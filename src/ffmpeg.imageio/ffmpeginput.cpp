@@ -329,6 +329,10 @@ FFmpegInput::open(const std::string& name, ImageSpec& spec)
     }
     m_frame     = av_frame_alloc();
     m_rgb_frame = av_frame_alloc();
+    if (!m_frame || !m_rgb_frame) {
+        errorfmt("Could not allocate video frames");
+        return false;
+    }
 
     AVPixelFormat src_pix_format;
     switch (m_codec_context->pix_fmt) {  // deprecation warning for YUV formats
@@ -490,16 +494,24 @@ FFmpegInput::open(const std::string& name, ImageSpec& spec)
                          nchannels, datatype);
     m_stride = (size_t)(m_spec.scanline_bytes());
 
-    m_rgb_buffer.resize(av_image_get_buffer_size(m_dst_pix_format,
-                                                 m_codec_context->width,
-                                                 m_codec_context->height, 1),
-                        0);
+    int buf_size = av_image_get_buffer_size(m_dst_pix_format,
+                                            m_codec_context->width,
+                                            m_codec_context->height, 1);
+    if (buf_size <= 0) {
+        errorfmt("Could not determine image buffer size");
+        return false;
+    }
+    m_rgb_buffer.resize(buf_size, 0);
 
     m_sws_rgb_context
         = sws_getContext(m_codec_context->width, m_codec_context->height,
                          src_pix_format, m_codec_context->width,
                          m_codec_context->height, m_dst_pix_format, SWS_AREA,
                          NULL, NULL, NULL);
+    if (!m_sws_rgb_context) {
+        errorfmt("Could not create SWS context");
+        return false;
+    }
 
     AVDictionaryEntry* tag = NULL;
     while ((tag = av_dict_get(m_format_context->metadata, "", tag,
