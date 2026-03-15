@@ -724,25 +724,28 @@ JpgInput::jpeg_decode_iptc(string_view buf)
 {
     // APP13 blob doesn't have to be IPTC info.  Look for the IPTC marker,
     // which is the string "Photoshop 3.0" followed by a null character.
+    // Return true (not an error) if the data simply isn't IPTC, and false
+    // only for actual corruption (truncated data, size mismatches).
     if (!Strutil::starts_with(buf, "Photoshop 3.0"))
-        return false;
+        return true;
     buf.remove_prefix(13);
     if (buf.size() < 1 || buf[0] != '\0')
-        return false;
+        return true;
     buf.remove_prefix(1);
 
     // Next are the 4 bytes "8BIM"
     if (!Strutil::starts_with(buf, "8BIM"))
-        return false;
+        return true;
     buf.remove_prefix(4);
 
     // Next two bytes are the segment type, in big endian.
     // We expect 1028 to indicate IPTC data block.
-    if (buf.size() < 2
-        || ((static_cast<unsigned char>(buf[0]) << 8)
-            + static_cast<unsigned char>(buf[1]))
-               != 1028)
+    if (buf.size() < 2)
         return false;
+    if (((static_cast<unsigned char>(buf[0]) << 8)
+         + static_cast<unsigned char>(buf[1]))
+        != 1028)
+        return true;  // valid non-IPTC Photoshop resource block
     buf.remove_prefix(2);
 
     // Next are 4 bytes of 0 padding, just skip it.
