@@ -311,8 +311,13 @@ WebpInput::read_current_subimage()
     uint8_t* okptr = nullptr;
     if (m_subimage == 0 || !m_iter.has_alpha) {
         // No alpha supplied (or first image) -- full overwrite
-        size_t offset = (m_iter.y_offset * m_spec.width + m_iter.x_offset)
+        size_t offset = (size_t(m_iter.y_offset) * m_spec.width
+                         + m_iter.x_offset)
                         * m_spec.pixel_bytes();
+        if (offset > m_spec.image_bytes()) {
+            errorfmt("WebP frame offset exceeds image bounds");
+            return false;
+        }
         if (m_spec.nchannels == 3) {
             okptr = WebPDecodeRGBInto(m_iter.fragment.bytes,
                                       m_iter.fragment.size,
