@@ -203,7 +203,7 @@ GIFInput::read_native_scanline(int subimage, int miplevel, int y, int /*z*/,
     if (!seek_subimage(subimage, miplevel))
         return false;
 
-    if (y < 0 || y > m_spec.height || !m_canvas.size())
+    if (y < 0 || y >= m_spec.height || !m_canvas.size())
         return false;
 
     memcpy(data, &m_canvas[y * m_spec.width * m_spec.nchannels],
@@ -364,8 +364,8 @@ GIFInput::read_subimage_data()
                         fscanline[wx], wx, y, colormap_count);
                     return false;
                 }
-                int x   = window_left + wx;
-                int idx = m_spec.nchannels * (y * m_spec.width + x);
+                int x      = window_left + wx;
+                size_t idx = m_spec.nchannels * (size_t(y) * m_spec.width + x);
                 if (0 <= x && x < m_spec.width
                     && fscanline[wx] != m_transparent_color) {
                     m_canvas[idx]     = colormap[fscanline[wx]].Red;
@@ -411,7 +411,7 @@ GIFInput::seek_subimage(int subimage, int miplevel)
             return false;
         }
         m_subimage = -1;
-        m_canvas.resize(m_gif_file->SWidth * m_gif_file->SHeight * 4);
+        m_canvas.resize(size_t(m_gif_file->SWidth) * m_gif_file->SHeight * 4);
     }
 
     // skip subimages preceding the requested one
