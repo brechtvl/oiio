@@ -376,7 +376,9 @@ SgiInput::read_header()
 bool
 SgiInput::read_offset_tables()
 {
-    int tables_size = m_sgi_header.ysize * m_sgi_header.zsize;
+    if (m_sgi_header.ysize <= 0 || m_sgi_header.zsize <= 0)
+        return false;
+    size_t tables_size = size_t(m_sgi_header.ysize) * m_sgi_header.zsize;
     start_tab.resize(tables_size);
     length_tab.resize(tables_size);
     if (!ioread(&start_tab[0], sizeof(uint32_t), tables_size)
