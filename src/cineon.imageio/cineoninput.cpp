@@ -352,6 +352,9 @@ CineonInput::open(const std::string& name, ImageSpec& newspec)
                          TypeDesc(TypeDesc::UCHAR, m_cin.header.UserSize()),
                          &m_userBuf[0]);
 
+    if (!check_open(m_spec))
+        return false;
+
     newspec = spec();
     return true;
 }

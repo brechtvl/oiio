@@ -81,6 +81,8 @@ FitsInput::open(const std::string& name, ImageSpec& spec)
     if (!set_spec_info())
         return false;
 
+    if (!check_open(m_spec, { 0, 1 << 16, 0, 1 << 16, 0, 1 << 16, 0, 4 }))
+        return false;
     spec = m_spec;
     return true;
 };

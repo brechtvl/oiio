@@ -150,6 +150,11 @@ SoftimageInput::open(const std::string& name, ImageSpec& spec)
     fgetpos(m_fd, &curPos);
     m_scanline_markers.push_back(curPos);
 
+    if (!check_open(m_spec)) {
+        close();
+        return false;
+    }
+
     spec = m_spec;
     return true;
 }

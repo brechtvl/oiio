@@ -155,6 +155,8 @@ PtexInput::seek_subimage(int subimage, int miplevel)
                        m_ptex->numChannels(), format);
 
     m_spec.alpha_channel = m_ptex->alphaChannel();
+    if (!check_open(m_spec))
+        return false;
 
     if (m_ptex->meshType() == Ptex::mt_triangle)
         m_spec.attribute("ptex:meshType", "triangle");
@@ -222,7 +224,7 @@ PtexInput::get_ptex_metadata(PtexMetaData* pmeta)
     if (!pmeta)
         return;
 
-        // Helper macro to get metadata of a specific type
+    // Helper macro to get metadata of a specific type
 #define GETMETA(pmeta, key, ptype, basetype, typedesc, value) \
     {                                                         \
         const ptype* v;                                       \

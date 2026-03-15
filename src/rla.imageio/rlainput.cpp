@@ -455,7 +455,7 @@ RLAInput::seek_subimage(int subimage, int miplevel)
 
     // N.B. the file pointer is now immediately after the scanline
     // offset table for this subimage.
-    return true;
+    return check_open(m_spec);
 }
 
 

@@ -270,6 +270,8 @@ IffInput::open(const std::string& name, ImageSpec& spec)
     // we save this position - it will be helpful in read_native_tile
     m_tbmp_start = m_header.tbmp_start;
 
+    if (!check_open(m_spec))
+        return false;
     spec = m_spec;
     return true;
 }

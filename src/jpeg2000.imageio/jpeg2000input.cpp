@@ -371,7 +371,7 @@ Jpeg2000Input::ojph_read_header()
     m_spec.attribute("oiio:BitsPerSample", siz.get_bit_depth(0));
     m_spec.set_colorspace("srgb_rec709_scene");
 
-    return true;
+    return check_open(m_spec);
 }
 
 
@@ -635,6 +635,8 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& p_spec)
         }
     }
 
+    if (!check_open(m_spec))
+        return false;
     p_spec = m_spec;
     return true;
 }

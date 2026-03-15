@@ -161,6 +161,10 @@ WebpInput::open(const std::string& name, ImageSpec& spec,
 #endif
 
     m_spec = ImageSpec(w, h, (m_demux_flags & ALPHA_FLAG) ? 4 : 3, TypeUInt8);
+    if (!check_open(m_spec)) {
+        close();
+        return false;
+    }
     m_scanline_size = m_spec.scanline_bytes();
     m_spec.set_colorspace("srgb_rec709_scene");  // webp is always sRGB
     if (m_demux_flags & ANIMATION_FLAG) {

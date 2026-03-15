@@ -1061,7 +1061,7 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
     get_colorinfo();
     get_makernotes();
 
-    return true;
+    return check_open(m_spec);
 }
 
 

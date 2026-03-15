@@ -556,8 +556,10 @@ FFmpegInput::open(const std::string& name, ImageSpec& spec)
         m_spec.attribute("oiio:ColorSpace", interop_id);
 
     m_nsubimages = m_frames;
-    spec         = m_spec;
-    m_filename   = name;
+    if (!check_open(m_spec))
+        return false;
+    spec       = m_spec;
+    m_filename = name;
     return true;
 }
 

@@ -399,6 +399,8 @@ JxlInput::open(const std::string& name, ImageSpec& newspec)
             m_spec.attribute("oiio:ColorSpace", interop_id);
     }
 
+    if (!check_open(m_spec))
+        return false;
     newspec = m_spec;
     return true;
 }

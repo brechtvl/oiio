@@ -163,6 +163,11 @@ SgiInput::open(const std::string& name, ImageSpec& spec)
                              sizeof(m_sgi_header.imagename)))
         m_spec.attribute("ImageDescription", m_sgi_header.imagename);
 
+    if (!check_open(m_spec)) {
+        close();
+        return false;
+    }
+
     if (m_sgi_header.storage == sgi_pvt::RLE) {
         m_spec.attribute("compression", "rle");
         if (!read_offset_tables())

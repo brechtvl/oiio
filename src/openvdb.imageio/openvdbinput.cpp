@@ -157,7 +157,7 @@ OpenVDBInput::seek_subimage_nolock(int subimage, int miplevel)
 
     m_subimage = subimage;
     m_spec     = m_layers[subimage].spec;
-    return true;
+    return check_open(m_spec, { 0, 1 << 16, 0, 1 << 16, 0, 1 << 16, 0, 4 });
 }
 
 

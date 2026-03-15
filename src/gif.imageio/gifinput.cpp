@@ -442,7 +442,7 @@ GIFInput::seek_subimage(int subimage, int miplevel)
         return false;
     }
 
-    return true;
+    return check_open(m_spec);
 }
 
 

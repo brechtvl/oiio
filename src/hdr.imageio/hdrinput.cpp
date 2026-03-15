@@ -255,7 +255,9 @@ HdrInput::open(const std::string& name, ImageSpec& newspec)
     m_scanline_offsets.push_back(iotell());
 
     m_subimage = 0;
-    newspec    = spec();
+    if (!check_open(m_spec))
+        return false;
+    newspec = spec();
     return true;
 }
 

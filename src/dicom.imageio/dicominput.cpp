@@ -247,7 +247,7 @@ DICOMInput::seek_subimage(int subimage, int miplevel)
 
     read_metadata();
 
-    return true;
+    return check_open(m_spec);
 }
 
 

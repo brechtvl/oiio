@@ -287,6 +287,8 @@ R3dInput::open(const std::string& name, ImageSpec& newspec)
     m_spec.attribute("oiio:Movie", true);
     m_spec.attribute("oiio:subimages", int(m_frames));
     m_spec.attribute("oiio:BitsPerSample", 16);
+    if (!check_open(m_spec))
+        return false;
 
     newspec         = m_spec;
     m_next_scanline = 0;

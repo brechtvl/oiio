@@ -497,7 +497,7 @@ HeifInput::seek_subimage(int subimage, int miplevel)
     }
 
     m_subimage = subimage;
-    return true;
+    return check_open(m_spec);
 }
 
 

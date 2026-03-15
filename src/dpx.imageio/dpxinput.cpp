@@ -558,7 +558,7 @@ DPXInput::seek_subimage(int subimage, int miplevel)
     if (m_spec.nchannels == 1)
         m_rawcolor = true;
 
-    return true;
+    return check_open(m_spec);
 }
 
 
