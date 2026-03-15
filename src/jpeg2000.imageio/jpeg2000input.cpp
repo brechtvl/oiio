@@ -774,7 +774,7 @@ Jpeg2000Input::read_scanline(int y, int /*z*/, void* data)
         int chan_xend = comp.w * comp.dx;
         int yoff      = (y - comp.y0) / comp.dy;
         for (int x = 0; x < m_spec.width; ++x) {
-            if (yoff < chan_ybegin || yoff >= chan_yend || x > chan_xend) {
+            if (yoff < chan_ybegin || yoff >= chan_yend || x >= chan_xend) {
                 // Outside the window of this channel
                 scanline[x * nc + c] = T(0);
             } else {
