@@ -260,6 +260,10 @@ FitsInput::read_fits_header(void)
         }
         if (keyname == "NAXIS") {
             m_naxes = Strutil::stoi(&card[10]);
+            if (m_naxes < 0 || m_naxes > 4) {
+                errorfmt("Number of data axes {} not supported", m_naxes);
+                return false;
+            }
             m_naxis.resize(m_naxes);
             continue;
         }
