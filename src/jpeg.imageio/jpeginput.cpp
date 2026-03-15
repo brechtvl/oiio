@@ -64,7 +64,7 @@ my_error_exit(j_common_ptr cinfo)
     JpgInput::my_error_ptr myerr = (JpgInput::my_error_ptr)cinfo->err;
     OIIO_ASSERT(myerr);
 
-    if (myerr && myerr->jpginput)
+    if (myerr->jpginput)
         myerr->jpginput->jpegerror(myerr, true);
 
     /* Return control to the setjmp point */
@@ -79,7 +79,7 @@ my_output_message(j_common_ptr cinfo)
     JpgInput::my_error_ptr myerr = (JpgInput::my_error_ptr)cinfo->err;
     OIIO_ASSERT(myerr);
 
-    if (myerr && myerr->jpginput)
+    if (myerr->jpginput)
         myerr->jpginput->jpegerror(myerr, false);
 
     // This function is called only for non-fatal problems, so we don't
@@ -278,8 +278,8 @@ JpgInput::open(const std::string& name, ImageSpec& newspec)
             decode_exif(string_view((char*)m->data + 6, m->data_length - 6),
                         m_spec);
         } else if (m->marker == (JPEG_APP0 + 1) && m->data_length >= 28
-                   && !strcmp((const char*)m->data,
-                              "http://ns.adobe.com/xap/1.0/")) {  //NOSONAR
+                   && !strncmp((const char*)m->data,
+                               "http://ns.adobe.com/xap/1.0/", 28)) {  //NOSONAR
             std::string xml((const char*)m->data, m->data_length);
             decode_xmp(xml, m_spec);
         } else if (m->marker == (JPEG_APP0 + 13) && m->data_length >= 13
