@@ -76,7 +76,7 @@ bool cineon::Codec::Read(const Header &dpxHeader, ElementReadStream *fd, const B
 		const int bitDepth = dpxHeader.BitDepth(0);
 
 		// size of the scanline buffer is image width * number of components * bytes per component
-		int slsize = ((numberOfComponents * dpxHeader.Width() *
+		size_t slsize = ((size_t(numberOfComponents) * dpxHeader.Width() *
 					  (bitDepth / 8 + (bitDepth % 8 ? 1 : 0))) / sizeof(U32))+1;
 
 		this->scanline = new U32[slsize];
