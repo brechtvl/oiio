@@ -2371,7 +2371,7 @@ PSDInput::decompress_zip_prediction(span<char> src, span<char> dest,
 
     switch (m_header.depth) {
     case 8:
-        if ((height - 1) * width + (width - 1) >= dest.size())
+        if ((uint64_t(height - 1) * width + (width - 1)) >= dest.size())
             return false;  // going to exceed the dest bounds
         for (uint64_t y = 0; y < height; ++y) {
             // Index x beginning at one since we look behind to calculate
@@ -2386,7 +2386,7 @@ PSDInput::decompress_zip_prediction(span<char> src, span<char> dest,
         // prediction decoding to work correctly
         span<uint16_t> destView(reinterpret_cast<uint16_t*>(dest.data()),
                                 dest.size() / 2);
-        if ((height - 1) * width + (width - 1) >= destView.size())
+        if ((uint64_t(height - 1) * width + (width - 1)) >= destView.size())
             return false;  // going to exceed the dest bounds
         if (!bigendian())
             byteswap_span(destView);
@@ -2402,6 +2402,8 @@ PSDInput::decompress_zip_prediction(span<char> src, span<char> dest,
     case 32: {
         // 32-bit files actually have the float bytes stored in planar fashion on disk
         // which are then prediction encoded. Thus we first decode the bytes itself
+        if (uint64_t(height) * width * sizeof(float) > dest.size())
+            return false;  // going to exceed the dest bounds
         uint64_t index = 0;
         for (uint64_t y = 0; y < height; ++y) {
             ++index;
