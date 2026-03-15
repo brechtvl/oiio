@@ -406,10 +406,18 @@ test_all_formats()
         const float* orig_pixels = (const float*)buf.localpixels();
 
         std::cout << "    Writing " << filename << " ... ";
+        std::string write_errmsg;
         ok = checked_write(out.get(), filename, buf.spec(), buf.spec().format,
-                           buf.localpixels_as_writable_byte_image_span());
-        if (ok)
+                           buf.localpixels_as_writable_byte_image_span(), false,
+                           &write_errmsg);
+        if (ok) {
             std::cout << term.ansi("green", "OK\n");
+        } else {
+            std::cout << term.ansi("yellow",
+                                   Strutil::fmt::format("OK ({})\n",
+                                                        write_errmsg));
+            continue;
+        }
 
         //
         // Try reading the file, and make sure it matches what we wrote

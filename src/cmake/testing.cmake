@@ -116,6 +116,7 @@ macro (oiio_add_tests)
                              "OIIO_TESTSUITE_SRC=${_testsrcdir}"
                              "OIIO_TESTSUITE_CUR=${_testdir}"
                              "Python_EXECUTABLE=${Python3_EXECUTABLE}"
+                             "OpenImageIO_ROOT=${CMAKE_INSTALL_PREFIX}"
                              ${_ats_ENVIRONMENT})
             if (NOT ${_ats_testdir} STREQUAL "")
                 set_property(TEST ${_testname} APPEND PROPERTY ENVIRONMENT
