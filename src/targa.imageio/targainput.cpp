@@ -572,13 +572,14 @@ TGAInput::decode_pixel(unsigned char* in, unsigned char* out,
                        unsigned char* palette, int bytespp, int palbytespp,
                        size_t palette_alloc_size)
 {
-    unsigned int k = 0;
+    size_t k = 0;
     // I hate nested switches...
     switch (m_tga.type) {
     case TYPE_PALETTED:
     case TYPE_PALETTED_RLE:
         for (int i = 0; i < bytespp; ++i)
-            k |= in[i] << (8 * i);  // Assemble it in little endian order
+            k |= (size_t)in[i]
+                 << (8 * i);  // Assemble it in little endian order
         k = (m_tga.cmap_first + k) * palbytespp;
         if (k + palbytespp > palette_alloc_size) {
             errorfmt("Corrupt palette index");
