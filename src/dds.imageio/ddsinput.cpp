@@ -924,7 +924,7 @@ DDSInput::internal_readimg(unsigned char* dst, int w, int h, int d)
             int k;
             for (int y = 0; y < h; y++) {
                 for (int x = 0; x < w; x++) {
-                    k = (y * w + x) * 4;
+                    k = (size_t(y) * w + x) * 4;
                     if (dst[k + 3]) {
                         dst[k + 0] = (unsigned char)((int)dst[k + 0] * 255
                                                      / (int)dst[k + 3]);
@@ -952,15 +952,16 @@ DDSInput::internal_readimg(unsigned char* dst, int w, int h, int d)
             }
         }
         if (direct) {
-            return ioread(dst, w * m_Bpp, h);
+            return ioread(dst, (size_t)w * m_Bpp, h);
         }
 
-        std::unique_ptr<uint8_t[]> tmp(new uint8_t[w * m_Bpp]);
+        std::unique_ptr<uint8_t[]> tmp(new uint8_t[(size_t)w * m_Bpp]);
         for (int z = 0; z < d; z++) {
             for (int y = 0; y < h; y++) {
                 if (!ioread(tmp.get(), w, m_Bpp))
                     return false;
-                size_t k = (z * h * w + y * w) * m_spec.nchannels;
+                size_t k = (size_t(z) * h * w + size_t(y) * w)
+                           * m_spec.nchannels;
                 for (int x = 0; x < w; x++, k += m_spec.nchannels) {
                     uint32_t pixel = 0;
                     memcpy(&pixel, tmp.get() + x * m_Bpp, m_Bpp);
@@ -1027,8 +1028,11 @@ DDSInput::read_native_scanline(int subimage, int miplevel, int y, int z,
     if (m_buf.empty())
         readimg_scanlines();
 
-    size_t size = spec().scanline_bytes();
-    memcpy(data, &m_buf[0] + z * m_spec.height * size + y * size, size);
+    size_t size   = spec().scanline_bytes();
+    size_t offset = size_t(z) * m_spec.height * size + size_t(y) * size;
+    if (offset + size > m_buf.size())
+        return false;
+    memcpy(data, &m_buf[0] + offset, size);
     return true;
 }
 
