@@ -618,8 +618,9 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
         m_processor->imgdata.params.output_color = 0;
         m_processor->imgdata.params.gamm[0]      = 1.0;
         m_processor->imgdata.params.gamm[1]      = 1.0;
-    } else if (colorconfig.equivalent(cs, "srgb_rec709_scene")
-               || Strutil::iequals(cs, "sRGB") /* Necessary? */) {
+    } else if (Strutil::iequals(cs, "sRGB")
+               || colorconfig.equivalent(cs, "srgb_rec709_display")
+               || colorconfig.equivalent(cs, "srgb_rec709_scene")) {
         // Request explicit sRGB, including usual sRGB response
         m_processor->imgdata.params.output_color = 1;
         m_processor->imgdata.params.gamm[0]      = 1.0 / 2.4;
