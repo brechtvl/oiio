@@ -151,6 +151,7 @@ BmpInput::open(const std::string& name, ImageSpec& newspec,
     // this behavior off.
     bool monodetect = config["bmp:monochrome_detect"].get<int>(1);
 
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     if (!ioproxy_use_or_open(name))
         return false;
@@ -264,7 +265,7 @@ BmpInput::open(const std::string& name, ImageSpec& newspec,
     // display, so assume it's sRGB. This is not really correct -- see the
     // comments below.
     m_spec.attribute("oiio:FileColorSpace", "sRGB");
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 #if 0
     if (m_dib_header.size >= WINDOWS_V4
         && m_dib_header.cs_type == CSType::CalibratedRGB) {

@@ -70,7 +70,27 @@ public:
     // The "local" proxy that we will create to use if the user didn't
     // supply a proxy for us to use.
     std::unique_ptr<Filesystem::IOProxy> m_io_local;
+
+    // Keep the raw color metadata the color space was resolved from?
+    bool m_keep_color_metadata = false;
 };
+
+
+
+void
+ImageInput::color_metadata_retrieve_from_config(const ImageSpec& config)
+{
+    m_impl->m_keep_color_metadata
+        = config.get_int_attribute("oiio:KeepColorMetadata") != 0;
+}
+
+
+
+bool
+ImageInput::keep_color_metadata() const
+{
+    return m_impl->m_keep_color_metadata;
+}
 
 
 

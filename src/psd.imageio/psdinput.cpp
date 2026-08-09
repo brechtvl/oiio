@@ -669,6 +669,7 @@ PSDInput::open(const std::string& name, ImageSpec& newspec,
     if (config.get_int_attribute("oiio:UnassociatedAlpha", 0) == 1)
         m_keep_unassociated_alpha = true;
 
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
 
     return open(name, newspec);
@@ -2108,7 +2109,7 @@ PSDInput::setup()
         if (m_keep_unassociated_alpha)
             spec.attribute("oiio:UnassociatedAlpha", 1);
 
-    spec.resolve_colorspace();
+    spec.resolve_colorspace(!keep_color_metadata());
 
     // Composite channels
     m_channels.reserve(m_subimage_count);
@@ -2139,7 +2140,7 @@ PSDInput::setup()
             if (m_keep_unassociated_alpha)
                 spec.attribute("oiio:UnassociatedAlpha", 1);
 
-        spec.resolve_colorspace();
+        spec.resolve_colorspace(!keep_color_metadata());
 
         m_channels.resize(m_channels.size() + 1);
         std::vector<ChannelInfo*>& channels = m_channels.back();

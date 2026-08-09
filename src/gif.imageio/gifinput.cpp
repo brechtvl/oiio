@@ -179,6 +179,7 @@ GIFInput::open(const std::string& name, ImageSpec& newspec,
                const ImageSpec& config)
 {
     // Check 'config' for any special requests
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     ioseek(0);
     return open(name, newspec);
@@ -272,7 +273,7 @@ GIFInput::read_subimage_metadata(ImageSpec& newspec)
     newspec.default_channel_names();
     newspec.alpha_channel = 4;
     newspec.attribute("oiio:FileColorSpace", "sRGB");
-    newspec.resolve_colorspace();
+    newspec.resolve_colorspace(!keep_color_metadata());
 
     m_previous_disposal_method = m_disposal_method;
     m_disposal_method          = DISPOSAL_UNSPECIFIED;

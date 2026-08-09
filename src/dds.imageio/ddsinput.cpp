@@ -409,6 +409,7 @@ bool
 DDSInput::open(const std::string& name, ImageSpec& newspec,
                const ImageSpec& config)
 {
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     return open(name, newspec);
 }
@@ -861,7 +862,7 @@ DDSInput::seek_subimage(int subimage, int miplevel)
     else if (basetype == TypeDesc::HALF || basetype == TypeDesc::FLOAT) {
         m_spec.attribute("oiio:FileColorSpace", "lin_rec709_scene");
     }
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     m_spec.default_channel_names();
     // Special case: if a 2-channel DDS RG or YA?

@@ -899,6 +899,7 @@ TIFFInput::open(const std::string& name, ImageSpec& newspec,
                 const ImageSpec& config)
 {
     // Check 'config' for any special requests
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     if (config.get_int_attribute("oiio:UnassociatedAlpha", 0) == 1)
         m_keep_unassociated_alpha = true;
@@ -1593,7 +1594,7 @@ TIFFInput::readspec(bool read_meta)
     // Squash some problematic texture metadata if we suspect it's wrong
     pvt::check_texture_metadata_sanity(m_spec);
 
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     if (m_testopenconfig)  // open-with-config debugging
         m_spec.attribute("oiio:DebugOpenConfig!", 42);

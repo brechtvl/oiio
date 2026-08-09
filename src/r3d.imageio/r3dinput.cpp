@@ -211,6 +211,7 @@ R3dInput::open(const std::string& name, ImageSpec& newspec,
 {
     DBG("R3dInput::open(name, newspec, config)\n");
 
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     m_config.reset(new ImageSpec(config));  // save config spec
     return open(name, newspec);

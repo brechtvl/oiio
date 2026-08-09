@@ -229,6 +229,7 @@ OpenEXRInput::open(const std::string& name, ImageSpec& newspec,
                                                     TypeDesc::PTR);
     if (param)
         m_io = param->get<Filesystem::IOProxy*>();
+    color_metadata_retrieve_from_config(config);
 
     // Quick check to immediately reject nonexistent or non-exr files.
     if (!m_io && !Filesystem::is_regular(name)) {
@@ -730,7 +731,7 @@ OpenEXRInput::PartInfo::parse_header(OpenEXRInput* in,
         spec.attribute("colorInteropID", "lin_ap0_scene");
     }
 
-    spec.resolve_colorspace();
+    spec.resolve_colorspace(!in->keep_color_metadata());
 
     // Squash some problematic texture metadata if we suspect it's wrong
     pvt::check_texture_metadata_sanity(spec);

@@ -230,6 +230,7 @@ HdrInput::open(const std::string& name, ImageSpec& newspec,
                const ImageSpec& config)
 {
     // Check 'config' for any special requests
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     return open(name, newspec);
 }
@@ -374,7 +375,7 @@ HdrInput::RGBE_ReadHeader()
     }
     m_spec.attribute("Orientation", orientation);
 
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     return true;
 }

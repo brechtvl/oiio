@@ -101,6 +101,7 @@ SgiInput::open(const std::string& name, ImageSpec& newspec,
                const ImageSpec& config)
 {
     // Check 'config' for any special requests
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     return open(name, newspec);
 }

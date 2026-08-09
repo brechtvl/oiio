@@ -178,6 +178,7 @@ JpgInput::open(const std::string& name, ImageSpec& newspec,
 {
     auto p = config.find_attribute("_jpeg:raw", TypeInt);
     m_raw  = p && *(int*)p->data();
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     m_config.reset(new ImageSpec(config));  // save config spec
     return open(name, newspec);
@@ -423,7 +424,7 @@ JpgInput::open(const std::string& name, ImageSpec& newspec)
     if (m_spec.find_attribute("hdrgm:Version"))
         m_is_uhdr = read_uhdr(m_io);
 
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     newspec = m_spec;
     return true;

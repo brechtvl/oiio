@@ -176,7 +176,8 @@ PNGInput::open(const std::string& name, ImageSpec& newspec)
 
     bool ok = PNG_pvt::read_info(m_png, m_info, m_bit_depth, m_color_type,
                                  m_interlace_type, m_bg, m_spec,
-                                 m_keep_unassociated_alpha);
+                                 m_keep_unassociated_alpha,
+                                 keep_color_metadata());
     if (!ok || m_err
         || !check_open(m_spec, { 0, 1 << 30, 0, 1 << 30, 0, 1, 0, 4 })) {
         close();
@@ -221,6 +222,7 @@ PNGInput::open(const std::string& name, ImageSpec& newspec,
     m_linear_premult = config.get_int_attribute("png:linear_premult",
                                                 OIIO::get_int_attribute(
                                                     "png:linear_premult"));
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     m_config.reset(new ImageSpec(config));  // save config spec
     return open(name, newspec);

@@ -235,6 +235,7 @@ bool
 NullInput::open(const std::string& name, ImageSpec& newspec,
                 const ImageSpec& config)
 {
+    color_metadata_retrieve_from_config(config);
     m_filename = name;
     m_subimage = -1;
     m_miplevel = -1;

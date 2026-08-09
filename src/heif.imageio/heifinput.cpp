@@ -173,6 +173,7 @@ HeifInput::open(const std::string& name, ImageSpec& newspec,
     m_filename = name;
     m_subimage = -1;
 
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     if (!ioproxy_use_or_open(name))
         return false;
@@ -513,7 +514,7 @@ HeifInput::seek_subimage(int subimage, int miplevel)
         }
     }
 
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     m_subimage = subimage;
     return true;

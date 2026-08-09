@@ -345,6 +345,7 @@ TGAInput::open(const std::string& name, ImageSpec& newspec,
     // Check 'config' for any special requests
     if (config.get_int_attribute("oiio:UnassociatedAlpha", 0) == 1)
         m_keep_unassociated_alpha = true;
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     return open(name, newspec);
 }
@@ -524,7 +525,7 @@ TGAInput::read_tga2_header()
     // it's probably safe to ignore it altogether until someone complains
     // that it's missing :)
 
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     return true;
 }
@@ -689,7 +690,7 @@ TGAInput::get_thumbnail(ImageBuf& thumb, int subimage)
         // uncompressed.
         ImageSpec thumbspec(res[0], res[1], m_spec.nchannels, TypeUInt8);
         thumbspec.attribute("oiio:FileColorSpace", "sRGB");
-        thumbspec.resolve_colorspace();
+        thumbspec.resolve_colorspace(!keep_color_metadata());
         thumb.reset(thumbspec);
         int bytespp    = (m_tga.bpp == 15) ? 2 : (m_tga.bpp / 8);
         int palbytespp = (m_tga.cmap_size == 15) ? 2 : (m_tga.cmap_size / 8);

@@ -402,7 +402,7 @@ PNMInput::read_file_header()
         m_spec.attribute("pnm:binary", 1);
     }
     m_spec.attribute("oiio:FileColorSpace", "Rec709");
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
     return true;
 }
 
@@ -485,6 +485,7 @@ bool
 PNMInput::open(const std::string& name, ImageSpec& newspec,
                const ImageSpec& config)
 {
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
 
     if (!open(name, newspec)) {

@@ -220,7 +220,7 @@ CineonInput::open(const std::string& name, ImageSpec& newspec)
 #endif
 
     m_spec.attribute("oiio:FileColorSpace", colorspace);
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     // general metadata
     // some non-compliant writers will dump a field filled with 0xFF rather

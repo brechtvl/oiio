@@ -560,7 +560,7 @@ FFmpegInput::open(const std::string& name, ImageSpec& spec)
             m_codec_context->colorspace,
             m_codec_context->color_range == AVCOL_RANGE_MPEG ? 0 : 1 };
     m_spec.attribute("CICP", TypeDesc(TypeDesc::INT, 4), cicp);
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     m_nsubimages = m_frames;
     spec         = m_spec;

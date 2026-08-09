@@ -132,6 +132,7 @@ WebpInput::open(const std::string& name, ImageSpec& spec,
 {
     m_filename = name;
 
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     if (!ioproxy_use_or_open(name))
         return false;
@@ -241,7 +242,7 @@ WebpInput::open(const std::string& name, ImageSpec& spec,
         }
     }
 
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     // Validate the declared canvas extents and the implied uncompressed size
     // BEFORE allocating the decoded-image buffer, so a malformed header cannot

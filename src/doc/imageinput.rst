@@ -884,6 +884,13 @@ hints are supported by each reader) are:
      - If nonzero, reading images with non-RGB color models (such as YCbCr)
        will return unaltered pixel values (versus the default OIIO behavior
        of automatically converting to RGB).
+   * - ``oiio:KeepColorMetadata``
+     - int
+     - If nonzero, keep the raw color metadata that ``oiio:ColorSpace`` was
+       resolved from, such as ``oiio:Gamma`` and ``oiio:FileColorSpace``,
+       rather than removing it. This allows ``resolve_colorspace`` to be
+       called again with different preferences, for example to prefer scene
+       referred color spaces.
    * - ``oiio:UnassociatedAlpha``
      - int
      - If nonzero, and the file contains unassociated alpha, this will

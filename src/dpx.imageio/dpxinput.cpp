@@ -173,6 +173,7 @@ DPXInput::open(const std::string& name, ImageSpec& newspec,
     m_rawcolor = config.get_int_attribute("dpx:RawColor")
                  || config.get_int_attribute("dpx:RawData")  // deprecated
                  || config.get_int_attribute("oiio:RawColor");
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     return open(name, newspec);
 }
@@ -346,7 +347,7 @@ DPXInput::seek_subimage(int subimage, int miplevel)
     if (!colorspace.empty()) {
         m_spec.attribute("oiio:FileColorSpace", colorspace);
     }
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
     m_spec.attribute("dpx:Transfer", get_characteristic_string(
                                          m_dpx.header.Transfer(subimage)));
     // colorimetric characteristic

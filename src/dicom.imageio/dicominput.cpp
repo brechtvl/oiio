@@ -101,8 +101,9 @@ DICOMInput::open(const std::string& name, ImageSpec& newspec)
 
 bool
 DICOMInput::open(const std::string& name, ImageSpec& newspec,
-                 const ImageSpec& /*config*/)
+                 const ImageSpec& config)
 {
+    color_metadata_retrieve_from_config(config);
     m_filename = name;
     m_subimage = -1;
     m_img.reset();

@@ -150,6 +150,7 @@ RLAInput::open(const std::string& name, ImageSpec& newspec,
                const ImageSpec& config)
 {
     // Check 'config' for any special requests
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     return open(name, newspec);
 }
@@ -480,7 +481,7 @@ RLAInput::seek_subimage(int subimage, int miplevel)
 
     m_subimage = subimage;
 
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     // N.B. the file pointer is now immediately after the scanline
     // offset table for this subimage.

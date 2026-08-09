@@ -351,6 +351,7 @@ OpenEXRCoreInput::open(const std::string& name, ImageSpec& newspec,
                                                     TypeDesc::PTR);
     if (param)
         m_userdata.m_io = param->get<Filesystem::IOProxy*>();
+    color_metadata_retrieve_from_config(config);
 
     // Quick check to immediately reject nonexistent or non-exr files.
     //KDTDISABLE quick checks are still file iOPs, let the file open handle this
@@ -827,7 +828,7 @@ OpenEXRCoreInput::PartInfo::parse_header(OpenEXRCoreInput* in,
     if (spec.get_int_attribute("acesImageContainerFlag") == 1) {
         spec.attribute("colorInteropID", "lin_ap0_scene");
     }
-    spec.resolve_colorspace();
+    spec.resolve_colorspace(!in->keep_color_metadata());
 
     // Squash some problematic texture metadata if we suspect it's wrong
     pvt::check_texture_metadata_sanity(spec);

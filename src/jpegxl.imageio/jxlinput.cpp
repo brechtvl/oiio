@@ -136,6 +136,7 @@ JxlInput::open(const std::string& name, ImageSpec& newspec,
 {
     DBG std::cout << "JxlInput::open(name, newspec, config)\n";
 
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     m_config.reset(new ImageSpec(config));  // save config spec
     return open(name, newspec);
@@ -416,7 +417,7 @@ JxlInput::open(const std::string& name, ImageSpec& newspec)
         m_spec.attribute("CICP", TypeDesc(TypeDesc::INT, 4), cicp);
     }
 
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     newspec = m_spec;
     return true;

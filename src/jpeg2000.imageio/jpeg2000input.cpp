@@ -377,7 +377,7 @@ Jpeg2000Input::ojph_read_header()
     m_spec.default_channel_names();
     m_spec.attribute("oiio:BitsPerSample", siz.get_bit_depth(0));
     m_spec.attribute("oiio:FileColorSpace", "sRGB");
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     return true;
 }
@@ -691,7 +691,7 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& p_spec)
 
     m_spec.attribute("oiio:BitsPerSample", maxPrecision);
     m_spec.attribute("oiio:FileColorSpace", "sRGB");
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     if (m_image->icc_profile_len && m_image->icc_profile_buf) {
         m_spec.attribute("ICCProfile",
@@ -722,6 +722,7 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& newspec,
     // Check 'config' for any special requests
     if (config.get_int_attribute("oiio:UnassociatedAlpha", 0) == 1)
         m_keep_unassociated_alpha = true;
+    color_metadata_retrieve_from_config(config);
     ioproxy_retrieve_from_config(config);
     return open(name, newspec);
 }

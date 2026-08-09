@@ -916,6 +916,9 @@ public:
     /// When `image_state_default` is set to "scene" or "display", prefer a
     /// scene or display referred colorspace if color metadata is ambiguous.
     ///
+    /// When reading from an `ImageInput`, the "oiio:KeepColorMetadata" config
+    /// hint preserves all metadata needed to re-resolve the color space.
+    ///
     /// @version 3.2
     void resolve_colorspace(bool erase_conflicting_metadata = true,
                             string_view image_state_default = "scene");
@@ -1213,8 +1216,8 @@ public:
     /// Open file with given name, similar to `open(name,newspec)`. The
     /// `config` is an ImageSpec giving requests or special instructions.
     /// ImageInput implementations are free to not respond to any such
-    /// requests, so the default implementation is just to ignore config and
-    /// call regular `open(name,newspec)`.
+    /// requests, so the default implementation only retrieves the hints
+    /// handled by the base class and calls regular `open(name,newspec)`.
     ///
     /// @param name
     ///         Filename to open, UTF-8 encoded.
@@ -1232,7 +1235,8 @@ public:
     ///         `true` if the file was found and opened successfully.
     OIIO_NODISCARD_ERROR virtual bool open (const std::string& name,
                                             ImageSpec &newspec,
-                                            const ImageSpec& config OIIO_MAYBE_UNUSED) {
+                                            const ImageSpec& config) {
+        color_metadata_retrieve_from_config(config);
         return open(name,newspec);
     }
     /// Open the ImageInput using a UTF-16 encoded wstring filename.
@@ -2281,6 +2285,17 @@ protected:
     /// They are protected methods of ImageInput, and are used internally by
     /// the ImageInput format-reading implementations.
     ///
+
+    /// Retrieve the "oiio:KeepColorMetadata" configuration hint, which asks
+    /// the reader to keep the raw color metadata that the color space was
+    /// resolved from, rather than removing it.
+    void color_metadata_retrieve_from_config(const ImageSpec& config);
+
+    /// Whether the raw color metadata should be kept, as requested by the
+    /// "oiio:KeepColorMetadata" configuration hint. Readers pass the opposite
+    /// of this as the `erase_conflicting_metadata` argument of
+    /// `ImageSpec::resolve_colorspace`.
+    bool keep_color_metadata() const;
 
     /// Helper: convenience boilerplate for several checks and operations that
     /// every implementation of ImageInput::open() will need to do. Failure is

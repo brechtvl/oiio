@@ -384,6 +384,7 @@ RawInput::open(const std::string& name, ImageSpec& newspec,
 {
     m_filename = name;
     m_config   = config;
+    color_metadata_retrieve_from_config(config);
 
     bool force_load = config.get_int_attribute("raw:ForceLoad");
 
@@ -699,7 +700,7 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
 
     m_spec.attribute("oiio:FileColorSpace",
                      !interop_id.empty() ? interop_id : string_view(cs));
-    m_spec.resolve_colorspace();
+    m_spec.resolve_colorspace(!keep_color_metadata());
 
     // Exposure adjustment
     float exposure = config.get_float_attribute("raw:Exposure", -1.0f);

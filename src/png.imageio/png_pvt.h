@@ -180,7 +180,7 @@ decode_png_text_exif(string_view raw, ImageSpec& spec)
 inline bool
 read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
           int& interlace_type, Imath::Color3f& bg, ImageSpec& spec,
-          bool keep_unassociated_alpha)
+          bool keep_unassociated_alpha, bool keep_color_metadata)
 {
     // Must call this setjmp in every function that does PNG reads
     if (setjmp(png_jmpbuf(sp))) {  // NOLINT(cert-err52-cpp)
@@ -367,7 +367,7 @@ read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
 
     if (!spec.find_attribute("oiio:FileColorSpace"))
         spec.attribute("oiio:FileColorSpace", "sRGB");
-    spec.resolve_colorspace();
+    spec.resolve_colorspace(!keep_color_metadata);
 
     return ok;
 }
