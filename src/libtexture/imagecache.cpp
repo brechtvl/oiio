@@ -758,6 +758,13 @@ ImageCacheFile::open(ImageCachePerThreadInfo* thread_info)
         configspec = *m_configspec;
     if (imagecache().unassociatedalpha())
         configspec.attribute("oiio:UnassociatedAlpha", 1);
+    // Ask the reader to keep the raw color metadata, so that we can resolve
+    // the color space again with our preferred image state. Remember whether
+    // the caller wanted to keep it as well, in which case we leave it alone.
+    const bool keep_color_metadata
+        = configspec.get_int_attribute("oiio:KeepColorMetadata") != 0;
+    if (!imagecache().image_state_default().empty())
+        configspec.attribute("oiio:KeepColorMetadata", 1);
 
     if (m_inputcreator)
         inp.reset(m_inputcreator());
@@ -846,6 +853,16 @@ ImageCacheFile::open(ImageCachePerThreadInfo* thread_info)
                     "Images with more than 65535 channels are not supported.");
             tempspec = nativespec;
             if (nmip == 0) {
+                // Resolve the color space with our preferred image state,
+                // which also removes the raw color metadata we asked the
+                // reader to keep, unless the caller wanted to keep it. Do
+                // this before the spec is pooled, so that deduplication sees
+                // the final metadata and we never modify a spec that is
+                // already shared with another subimage.
+                ustring image_state = imagecache().image_state_default();
+                if (!image_state.empty())
+                    tempspec.resolve_colorspace(!keep_color_metadata,
+                                                image_state);
                 sispec = find_or_create_spec(nsubimages, tempspec);
                 OIIO_DASSERT(sispec);
                 // Things to do on MIP level 0, i.e. once per subimage
@@ -1987,6 +2004,7 @@ ImageCacheImpl::init()
     m_latlong_y_up_default = true;
     m_Mw2c.makeIdentity();
     m_colorspace              = ustring("scene_linear");
+    m_image_state_default     = ustring("display");
     m_mem_used                = 0;
     m_statslevel              = 0;
     m_max_errors_per_file     = 100;
@@ -2597,6 +2615,12 @@ ImageCacheImpl::attribute(string_view name, TypeDesc type, const void* val)
             m_colorspace  = uval;
             do_invalidate = true;
         }
+    } else if (name == "image_state_default" && type == TypeDesc::STRING) {
+        ustring uval(*(const char**)val);
+        if (uval != m_image_state_default) {
+            m_image_state_default = uval;
+            do_invalidate         = true;
+        }
     } else if (name == "max_mip_res" && type == TypeInt) {
         m_max_mip_res = *(const int*)val;
         do_invalidate = true;
@@ -2638,6 +2662,7 @@ ImageCacheImpl::getattributetype(string_view name) const
         { "commontoworld", TypeMatrix },
         { "latlong_up", TypeString },
         { "substitute_image", TypeString },
+        { "image_state_default", TypeString },
         { "stat:cache_memory_used", TypeInt64 },
         { "stat:tiles_created", TypeInt },
         { "stat:tiles_current", TypeInt },
@@ -2745,6 +2770,10 @@ ImageCacheImpl::getattribute(string_view name, TypeDesc type, void* val) const
     }
     if (name == "colorspace" && type == TypeDesc::STRING) {
         *(const char**)val = m_colorspace.c_str();
+        return true;
+    }
+    if (name == "image_state_default" && type == TypeDesc::STRING) {
+        *(const char**)val = m_image_state_default.c_str();
         return true;
     }
     if (name == "all_filenames" && type.basetype == TypeDesc::STRING

@@ -2332,35 +2332,8 @@ struct ColorInteropID {
 // Mapping between color interop ID and CICP, based on Color Interop Forum
 // recommendations.
 constexpr ColorInteropID color_interop_ids[] = {
-    // Scene referred interop IDs first so they are the default in automatic
-    // conversion from CICP to interop ID. Some are not display color spaces
-    // at all, but can be represented by CICP anyway.
-    { "lin_ap1_scene" },
-    { "lin_ap0_scene" },
-    { "lin_rec709_scene", CICPPrimaries::Rec709, CICPTransfer::Linear,
-      CICPMatrix::BT709 },
-    { "lin_p3d65_scene", CICPPrimaries::P3D65, CICPTransfer::Linear,
-      CICPMatrix::BT709 },
-    { "lin_rec2020_scene", CICPPrimaries::Rec2020, CICPTransfer::Linear,
-      CICPMatrix::Rec2020_CL },
-    { "lin_adobergb_scene" },
-    { "lin_ciexyzd65_scene", CICPPrimaries::XYZD65, CICPTransfer::Linear,
-      CICPMatrix::Unspecified },
-    { "srgb_rec709_scene", CICPPrimaries::Rec709, CICPTransfer::sRGB,
-      CICPMatrix::BT709 },
-    { "g24_rec709_scene" },
-    { "g22_rec709_scene", CICPPrimaries::Rec709, CICPTransfer::Gamma22,
-      CICPMatrix::BT709 },
-    { "g18_rec709_scene" },
-    { "srgb_ap1_scene" },
-    { "g22_ap1_scene" },
-    { "srgb_p3d65_scene", CICPPrimaries::P3D65, CICPTransfer::sRGB,
-      CICPMatrix::BT709 },
-    { "g22_adobergb_scene" },
-    { "data" },
-    { "unknown" },
-
-    // Display referred interop IDs.
+    // Display referred interop IDs first so they are the default in automatic.
+    // conversion from CICP to interop ID.
     { "srgb_rec709_display", CICPPrimaries::Rec709, CICPTransfer::sRGB,
       CICPMatrix::BT709 },
     // Not all software interprets this CICP the same, see the
@@ -2391,6 +2364,34 @@ constexpr ColorInteropID color_interop_ids[] = {
       CICPMatrix::Unspecified },
     { "pq_xyzd65_display", CICPPrimaries::XYZD65, CICPTransfer::PQ,
       CICPMatrix::Unspecified },
+
+    // Scene referred interop IDs first so they are the default in automatic
+    // conversion from CICP to interop ID. Some are not display color spaces
+    // at all, but can be represented by CICP anyway.
+    { "lin_ap1_scene" },
+    { "lin_ap0_scene" },
+    { "lin_rec709_scene", CICPPrimaries::Rec709, CICPTransfer::Linear,
+      CICPMatrix::BT709 },
+    { "lin_p3d65_scene", CICPPrimaries::P3D65, CICPTransfer::Linear,
+      CICPMatrix::BT709 },
+    { "lin_rec2020_scene", CICPPrimaries::Rec2020, CICPTransfer::Linear,
+      CICPMatrix::Rec2020_CL },
+    { "lin_adobergb_scene" },
+    { "lin_ciexyzd65_scene", CICPPrimaries::XYZD65, CICPTransfer::Linear,
+      CICPMatrix::Unspecified },
+    { "srgb_rec709_scene", CICPPrimaries::Rec709, CICPTransfer::sRGB,
+      CICPMatrix::BT709 },
+    { "g24_rec709_scene" },
+    { "g22_rec709_scene", CICPPrimaries::Rec709, CICPTransfer::Gamma22,
+      CICPMatrix::BT709 },
+    { "g18_rec709_scene" },
+    { "srgb_ap1_scene" },
+    { "g22_ap1_scene" },
+    { "srgb_p3d65_scene", CICPPrimaries::P3D65, CICPTransfer::sRGB,
+      CICPMatrix::BT709 },
+    { "g22_adobergb_scene" },
+    { "data" },
+    { "unknown" },
 
     // OpenColorIO interop IDs, last so that the official ones above take
     // priority when converting a CICP to an interop ID.
@@ -2431,7 +2432,7 @@ ColorConfig::get_color_interop_id(string_view colorspace) const
 string_view
 ColorConfig::get_color_interop_id(const int cicp[4]) const
 {
-    return get_color_interop_id(cicp, "scene");
+    return get_color_interop_id(cicp, "display");
 }
 
 string_view
@@ -2442,6 +2443,11 @@ ColorConfig::get_color_interop_id(const int cicp[4],
     for (const ColorInteropID& interop : color_interop_ids) {
         if (interop.has_cicp && interop.cicp[0] == cicp[0]
             && interop.cicp[1] == cicp[1]) {
+            // Only use vendor colorspace if it exist in the config.
+            if (Strutil::starts_with(interop.interop_id, "ocio:")
+                && !getImpl()->find(getImpl()->resolve(interop.interop_id))) {
+                continue;
+            }
             if (!Strutil::ends_with(interop.interop_id, image_state_default)) {
                 if (other_interop_id.empty()) {
                     other_interop_id = interop.interop_id;

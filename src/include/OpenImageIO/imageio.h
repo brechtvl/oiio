@@ -921,7 +921,7 @@ public:
     ///
     /// @version 3.2
     void resolve_colorspace(bool erase_conflicting_metadata = true,
-                            string_view image_state_default = "scene");
+                            string_view image_state_default = "display");
 
     /// Returns `true` for a newly initialized (undefined) `ImageSpec`.
     /// (Designated by no channels and undefined data type -- true of the

@@ -35,7 +35,7 @@ Opened "C:/a/OpenImageIO/OpenImageIO/build/testsuite/oiio-images/tahoe-gps.jpg" 
   GPS:TimeStamp = (17.0, 56.0, 33.0)
   GPS:MapDatum = "WGS-84"
   GPS:DateStamp = "1915:08:08"
-  oiio:ColorSpace = "srgb_rec709_scene"
+  oiio:ColorSpace = "srgb_rec709_display"
 
 Opened "grid.tx" as a tiff
   resolution 1024x1024+0+0

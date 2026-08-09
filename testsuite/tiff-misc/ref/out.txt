@@ -34,7 +34,7 @@ gps.tif              :   64 x   64, 3 channel, uint8 tiff
     Exif:ColorSpace: 1
     Exif:SubjectDistance: 0 (0 m)
     oiio:BitsPerSample: 8
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
     tiff:Compression: 8
     tiff:PhotometricInterpretation: 2
     tiff:PlanarConfiguration: 1

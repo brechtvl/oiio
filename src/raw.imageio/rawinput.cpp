@@ -785,6 +785,8 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
 
             // Also, any previously set demosaicing options are void, so remove them
             m_spec.erase_attribute("oiio:ColorSpace");
+            m_spec.erase_attribute("oiio:FileColorSpace");
+            m_spec.erase_attribute("oiio:Gamma");
             m_spec.erase_attribute("raw:ColorSpace");
             m_spec.erase_attribute("raw:Exposure");
         } else {

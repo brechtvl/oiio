@@ -49,7 +49,7 @@ gps.tif              :   64 x   64, 3 channel, uint8 tiff
     GPS:Track: 146.254
     GPS:TrackRef: "T" (true north)
     oiio:BitsPerSample: 8
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
     tiff:Compression: 8
     tiff:PhotometricInterpretation: 2
     tiff:PlanarConfiguration: 1

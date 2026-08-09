@@ -38,7 +38,7 @@ ref/IMG_7702_small.heic :  512 x  300, 3 channel, uint8 heif
     Exif:SubsecTimeDigitized: "006"
     Exif:SubsecTimeOriginal: "006"
     Exif:WhiteBalance: 0 (auto)
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
 Reading ../oiio-images/heif/greyhounds-looking-for-a-table.heic
 ../oiio-images/heif/greyhounds-looking-for-a-table.heic : 3024 x 4032, 3 channel, uint8 heif
     SHA-1: 8064B23A1A995B0D6525AFB5248EEC6C730BBB6C
@@ -96,7 +96,7 @@ Reading ../oiio-images/heif/greyhounds-looking-for-a-table.heic
     GPS:LongitudeRef: "E"
     GPS:Speed: 0.171966
     GPS:SpeedRef: "K" (km/hour)
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
     oiio:OriginalOrientation: 6
 Reading ../oiio-images/heif/sewing-threads.heic
 ../oiio-images/heif/sewing-threads.heic : 4000 x 3000, 3 channel, uint8 heif
@@ -145,24 +145,24 @@ Reading ../oiio-images/heif/sewing-threads.heic
     GPS:LatitudeRef: "N"
     GPS:Longitude: 1, 49, 34.0187
     GPS:LongitudeRef: "E"
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
 Reading mono-8bit.avif
 mono-8bit.avif       :   64 x   64, 3 channel, uint10 heif
     SHA-1: 4E361351029D39379C73580BCD4C9859E4B73ADE
     channel list: R, G, B
     CICP: 2, 2, 6, 1
     oiio:BitsPerSample: 10
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
 Reading mono-10bit.avif
 mono-10bit.avif      :   64 x   64, 3 channel, uint10 heif
     SHA-1: 4E361351029D39379C73580BCD4C9859E4B73ADE
     channel list: R, G, B
     CICP: 2, 2, 6, 1
     oiio:BitsPerSample: 10
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
 Reading odd-size.avif
 odd-size.avif        :   47 x   31, 3 channel, uint10 heif
     SHA-1: C0F296BD3EAB348134B6E14962822895338AF73C
     channel list: R, G, B
     oiio:BitsPerSample: 10
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"

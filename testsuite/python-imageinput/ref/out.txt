@@ -38,7 +38,7 @@ Opened "../oiio-images/tahoe-gps.jpg" as a jpeg
   thumbnail_width = 320
   thumbnail_height = 240
   thumbnail_nchannels = 3
-  oiio:ColorSpace = "srgb_rec709_scene"
+  oiio:ColorSpace = "srgb_rec709_display"
 
 Opened "grid.tx" as a tiff
   resolution 1024x1024+0+0

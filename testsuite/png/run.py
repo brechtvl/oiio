@@ -43,4 +43,14 @@ command += oiiotool ("-echo removed_cicp: test16.png --eraseattrib Software --ci
 # Test that "set_colorspace" removes CICP metadata
 command += oiiotool ("-echo remove_cicp_via_set_colorspace: test16.png --eraseattrib Software --cicp 1,13 --iscolorspace g22_rec709_display --printinfo")
 
+# Test g22_rec709_display being written as sRGB
+command += oiiotool ("--create 64x64 3 --iscolorspace g22_rec709_display -o g22_rec709_display.png")
+command += oiiotool ("--create 64x64 3 --iscolorspace g22_rec709_scene -o g22_rec709_scene.png")
+command += info_command ("g22_rec709_display.png", safematch=True)
+command += info_command ("g22_rec709_scene.png", safematch=True)
+
+# Test keeping the raw color metadata, so the color space can be resolved again
+command += info_command ("--iconfig oiio:KeepColorMetadata 1 src/alphagamma.png", safematch=True)
+command += info_command ("src/alphagamma.png", safematch=True)
+
 outputs = [ "test16.png", "out.txt" ]

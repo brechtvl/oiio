@@ -7,7 +7,7 @@ Reading ../oiio-images/png/oiio-logo-no-alpha.png
     ResolutionUnit: "inch"
     XResolution: 72
     YResolution: 72
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
 Comparing "../oiio-images/png/oiio-logo-no-alpha.png" and "oiio-logo-no-alpha.png"
 PASS
 Reading ../oiio-images/png/oiio-logo-with-alpha.png
@@ -19,7 +19,7 @@ Reading ../oiio-images/png/oiio-logo-with-alpha.png
     ResolutionUnit: "inch"
     XResolution: 72
     YResolution: 72
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
 Comparing "../oiio-images/png/oiio-logo-with-alpha.png" and "oiio-logo-with-alpha.png"
 PASS
 Reading exif.png
@@ -30,7 +30,7 @@ exif.png             :   64 x   64, 3 channel, uint8 png
     Exif:FlashPixVersion: "0100"
     Exif:FocalLength: 45.7 (45.7 mm)
     Exif:WhiteBalance: 0 (auto)
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
 alphagamma:
    1 x    1, 4 channel, float png
     channel list: R, G, B, A
@@ -39,7 +39,7 @@ alphagamma:
     XResolution: 300
     YResolution: 300
     Exif:ImageHistory: "oiiotool -no-autopremult SLEEP_MM.png -cut 1x1+227+1211 -o kaka.png"
-    oiio:ColorSpace: "g22_rec709_scene"
+    oiio:ColorSpace: "g22_rec709_display"
     Stats Min: 186 186 186 127 (of 255)
     Stats Max: 186 186 186 127 (of 255)
     Stats Avg: 186.00 186.00 186.00 127.00 (of 255)
@@ -77,7 +77,7 @@ gimp_gradient:
     ICCProfile:profile_size: 672
     ICCProfile:profile_version: "4.4.0"
     ICCProfile:rendering_intent: "Perceptual"
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
     Stats Min: 0 0 0 0 (of 255)
     Stats Max: 255 255 0 255 (of 255)
     Stats Avg: 142.37 105.72 0.00 154.72 (of 255)
@@ -93,14 +93,42 @@ cicp:
   16 x   16, 4 channel, float png
     channel list: R, G, B, A
     CICP: 1, 13, 0, 1
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
 removed_cicp:
   16 x   16, 4 channel, float png
     channel list: R, G, B, A
-    oiio:ColorSpace: "srgb_rec709_scene"
+    oiio:ColorSpace: "srgb_rec709_display"
 remove_cicp_via_set_colorspace:
   16 x   16, 4 channel, float png
     channel list: R, G, B, A
+    oiio:ColorSpace: "g22_rec709_display"
+Reading g22_rec709_display.png
+g22_rec709_display.png :   64 x   64, 3 channel, uint8 png
+    SHA-1: 7CB41FEA50720B48BE0C145E1473982B23E9AB77
+    channel list: R, G, B
+    oiio:ColorSpace: "g22_rec709_display"
+Reading g22_rec709_scene.png
+g22_rec709_scene.png :   64 x   64, 3 channel, uint8 png
+    SHA-1: 7CB41FEA50720B48BE0C145E1473982B23E9AB77
+    channel list: R, G, B
+    oiio:ColorSpace: "g22_rec709_display"
+Reading src/alphagamma.png
+src/alphagamma.png   :    1 x    1, 4 channel, uint8 png
+    SHA-1: 57716329F5B577F75182427190A38BC253EB2314
+    channel list: R, G, B, A
+    ResolutionUnit: "inch"
+    XResolution: 300
+    YResolution: 300
+    oiio:ColorSpace: "g22_rec709_display"
+    oiio:FileColorSpace: "sRGB"
+    oiio:Gamma: 2.19998
+Reading src/alphagamma.png
+src/alphagamma.png   :    1 x    1, 4 channel, uint8 png
+    SHA-1: 57716329F5B577F75182427190A38BC253EB2314
+    channel list: R, G, B, A
+    ResolutionUnit: "inch"
+    XResolution: 300
+    YResolution: 300
     oiio:ColorSpace: "g22_rec709_display"
 Comparing "test16.png" and "ref/test16.png"
 PASS
