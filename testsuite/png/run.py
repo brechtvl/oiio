@@ -43,7 +43,8 @@ command += oiiotool ("-echo removed_cicp: test16.png --eraseattrib Software --ci
 # Test that "set_colorspace" removes CICP metadata
 command += oiiotool ("-echo remove_cicp_via_set_colorspace: test16.png --eraseattrib Software --cicp 1,13 --iscolorspace g22_rec709_display --printinfo")
 
-# Test g22_rec709_display being written as sRGB
+# Test that g22_rec709_display is written as sRGB (via the sRGB chunk), while
+# the scene referred g22_rec709_scene is written as gamma 2.2 (via gAMA).
 command += oiiotool ("--create 64x64 3 --iscolorspace g22_rec709_display -o g22_rec709_display.png")
 command += oiiotool ("--create 64x64 3 --iscolorspace g22_rec709_scene -o g22_rec709_scene.png")
 command += info_command ("g22_rec709_display.png", safematch=True)

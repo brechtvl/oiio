@@ -40,15 +40,15 @@ alphagamma:
     YResolution: 300
     Exif:ImageHistory: "oiiotool -no-autopremult SLEEP_MM.png -cut 1x1+227+1211 -o kaka.png"
     oiio:ColorSpace: "g22_rec709_display"
-    Stats Min: 186 186 186 127 (of 255)
-    Stats Max: 186 186 186 127 (of 255)
-    Stats Avg: 186.00 186.00 186.00 127.00 (of 255)
+    Stats Min: 187 187 187 127 (of 255)
+    Stats Max: 187 187 187 127 (of 255)
+    Stats Avg: 187.00 187.00 187.00 127.00 (of 255)
     Stats StdDev: 0.00 0.00 0.00 0.00 (of 255)
     Stats NanCount: 0 0 0 0 
     Stats InfCount: 0 0 0 0 
     Stats FiniteCount: 1 1 1 1 
     Constant: Yes
-    Constant Color: 186.00 186.00 186.00 127.00 (of 255)
+    Constant Color: 187.00 187.00 187.00 127.00 (of 255)
     Monochrome: No
 gimp_gradient:
  256 x  256, 4 channel, float png
@@ -106,7 +106,7 @@ Reading g22_rec709_display.png
 g22_rec709_display.png :   64 x   64, 3 channel, uint8 png
     SHA-1: 7CB41FEA50720B48BE0C145E1473982B23E9AB77
     channel list: R, G, B
-    oiio:ColorSpace: "g22_rec709_display"
+    oiio:ColorSpace: "srgb_rec709_display"
 Reading g22_rec709_scene.png
 g22_rec709_scene.png :   64 x   64, 3 channel, uint8 png
     SHA-1: 7CB41FEA50720B48BE0C145E1473982B23E9AB77

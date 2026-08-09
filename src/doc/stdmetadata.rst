@@ -149,10 +149,18 @@ Color information
     - `"lin_ap1_scene"`, `"ACEScg"` :  ACEScg color space encoding.
     - `"lin_ap0_scene"` :  ACES2065-1, the recommended ACES space for
       interchange and archiving.
-    - `"srgb_rec709_scene"` : Using standard (piecewise) sRGB response and
-      primaries. The token `"sRGB"` is treated as a synonym.
+    - `"srgb_rec709_display"` : Using standard (piecewise) sRGB response and
+      primaries.
+    - `"srgb_rec709_scene"` : Same response and primaries as
+      `"srgb_rec709_display"` but for scene referred images. The token `"sRGB"`
+      is treated as a synonym, but it is recommended to use the more specific
+      interop ID.
     - `"g22_rec709_scene"` : Rec709/sRGB primaries, but using a response curve
       corresponding to gamma 2.2.
+    - `"g22_rec709_display"` : A gamma 2.2 display. OpenImageIO treats this as
+      sRGB when writing file metadata, because such a display is usually meant
+      to compensate for images that are encoded as sRGB but decoded as gamma
+      2.2 by the physical display.
 
     Additionally, `"scene_linear"` is a role that is appropriate for color
     pixel values are known to be scene-linear and using facility-default color
