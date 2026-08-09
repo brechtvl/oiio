@@ -221,12 +221,15 @@ read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
     }
 
     int srgb_intent;
-    double gamma = 0.0;
+    double gamma               = 0.0;
+    bool has_known_colorspaces = false;
     if (png_get_sRGB(sp, ip, &srgb_intent)) {
         spec.attribute("oiio:ColorSpace", "srgb_rec709_scene");
+        has_known_colorspaces = true;
     } else if (png_get_gAMA(sp, ip, &gamma) && gamma > 0.0) {
         float g = float(1.0 / gamma);
         set_colorspace_rec709_gamma(spec, g);
+        has_known_colorspaces = true;
     } else {
         // If there's no info at all, assume sRGB.
         spec.attribute("oiio:ColorSpace", "srgb_rec709_scene");
@@ -287,6 +290,10 @@ read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
                 pnginput->errorfmt("Could not decode Exif");
                 return false;
             }
+        } else if (has_known_colorspaces
+                   && Strutil::iequals(text_ptr[i].key, "oiio:ColorSpace")) {
+            // Older versions of OIIO wrote color space names like "Gamma2.2"
+            // here. Don't let them override known color spaces.
         } else {
             spec.attribute(text_ptr[i].key, text_ptr[i].text);
         }

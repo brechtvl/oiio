@@ -39,7 +39,7 @@ alphagamma:
     XResolution: 300
     YResolution: 300
     Exif:ImageHistory: "oiiotool -no-autopremult SLEEP_MM.png -cut 1x1+227+1211 -o kaka.png"
-    oiio:ColorSpace: "Gamma2.2"
+    oiio:ColorSpace: "g22_rec709_scene"
     oiio:Gamma: 2.2
     Stats Min: 186 186 186 127 (of 255)
     Stats Max: 186 186 186 127 (of 255)
