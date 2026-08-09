@@ -12,6 +12,7 @@ src/test.exr         :   64 x   64, 3 channel, half openexr
     cameraSerialNumber: "2719"
     captureRate: 24000/1000 (24)
     chromaticities: 0.7347, 0.2653, 0, 1, 0.0001, -0.077, 0.32168, 0.33767
+    colorInteropID: "lin_ap0_scene"
     com.arri.camera.AmcVersion: 0
     com.arri.camera.ArriUuid: "30366561-3134-3365-2D30-3030302D3430"
     com.arri.camera.ColorGamma: "LOG-C"

@@ -187,7 +187,7 @@ WebpInput::open(const std::string& name, ImageSpec& spec,
 
     m_spec = ImageSpec(w, h, (m_demux_flags & ALPHA_FLAG) ? 4 : 3, TypeUInt8);
     m_scanline_size = m_spec.scanline_bytes();
-    m_spec.set_colorspace("srgb_rec709_scene");  // webp is always sRGB
+    m_spec.attribute("oiio:FileColorSpace", "sRGB");  // webp is always sRGB
     if (m_demux_flags & ANIMATION_FLAG) {
         m_spec.attribute("oiio:Movie", 1);
         m_frame_count       = (int)WebPDemuxGetI(m_demux, WEBP_FF_FRAME_COUNT);
@@ -240,6 +240,8 @@ WebpInput::open(const std::string& name, ImageSpec& spec,
             return false;
         }
     }
+
+    m_spec.resolve_colorspace();
 
     // Validate the declared canvas extents and the implied uncompressed size
     // BEFORE allocating the decoded-image buffer, so a malformed header cannot

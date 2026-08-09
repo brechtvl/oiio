@@ -611,16 +611,15 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
     // request for "sRGB-linear" will give you sRGB primaries with a linear
     // response.
     const ColorConfig& colorconfig(ColorConfig::default_colorconfig());
-    std::string cs = config.get_string_attribute("raw:ColorSpace",
-                                                 "srgb_rec709_scene");
+    std::string cs = config.get_string_attribute("raw:ColorSpace");
     string_view interop_id;
     if (Strutil::iequals(cs, "raw")) {
         // Values straight from the chip
         m_processor->imgdata.params.output_color = 0;
         m_processor->imgdata.params.gamm[0]      = 1.0;
         m_processor->imgdata.params.gamm[1]      = 1.0;
-    } else if (colorconfig.equivalent(cs, "srgb_rec709_scene")
-               || Strutil::iequals(cs, "sRGB") /* Necessary? */) {
+    } else if (cs.empty() || Strutil::iequals(cs, "sRGB")
+               || colorconfig.equivalent(cs, "srgb_rec709_scene")) {
         // Request explicit sRGB, including usual sRGB response
         m_processor->imgdata.params.output_color = 1;
         m_processor->imgdata.params.gamm[0]      = 1.0 / 2.4;
@@ -670,6 +669,7 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
         m_processor->imgdata.params.output_color = 6;
         m_processor->imgdata.params.gamm[0]      = 1.0;
         m_processor->imgdata.params.gamm[1]      = 1.0;
+        interop_id                               = "lin_ap0_scene";
 #if LIBRAW_VERSION >= LIBRAW_MAKE_VERSION(0, 21, 0)
     } else if (Strutil::iequals(cs, "DCI-P3")
                || Strutil::iequals(cs, "lin_p3d65_scene")) {
@@ -696,7 +696,10 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
         errorfmt("raw:ColorSpace set to unknown value \"{}\"", cs);
         return false;
     }
-    m_spec.set_colorspace(!interop_id.empty() ? interop_id : string_view(cs));
+
+    m_spec.attribute("oiio:FileColorSpace",
+                     !interop_id.empty() ? interop_id : string_view(cs));
+    m_spec.resolve_colorspace();
 
     // Exposure adjustment
     float exposure = config.get_float_attribute("raw:Exposure", -1.0f);

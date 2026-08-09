@@ -840,7 +840,7 @@ DDSInput::seek_subimage(int subimage, int miplevel)
     if (bpp != 0)
         m_spec.attribute("oiio:BitsPerSample", bpp);
 
-    const char* colorspace = nullptr;
+    bool is_srgb = false;
 
     if (m_dds.fmt.fourCC == DDS_4CC_DX10) {
         switch (m_dx10.dxgiFormat) {
@@ -850,18 +850,18 @@ DDSInput::seek_subimage(int subimage, int miplevel)
         case DDS_FORMAT_BC7_UNORM_SRGB:
         case DDS_FORMAT_R8G8B8A8_UNORM_SRGB:
         case DDS_FORMAT_B8G8R8A8_UNORM_SRGB:
-        case DDS_FORMAT_B8G8R8X8_UNORM_SRGB:
-            colorspace = "srgb_rec709_scene";
-            break;
+        case DDS_FORMAT_B8G8R8X8_UNORM_SRGB: is_srgb = true; break;
         }
     }
 
+    if (is_srgb) {
+        m_spec.attribute("oiio:FileColorSpace", "sRGB");
+    }
     // linear color space for HDR-ish images
-    if (colorspace == nullptr
-        && (basetype == TypeDesc::HALF || basetype == TypeDesc::FLOAT))
-        colorspace = "lin_rec709_scene";
-
-    m_spec.set_colorspace(colorspace);
+    else if (basetype == TypeDesc::HALF || basetype == TypeDesc::FLOAT) {
+        m_spec.attribute("oiio:FileColorSpace", "lin_rec709_scene");
+    }
+    m_spec.resolve_colorspace();
 
     m_spec.default_channel_names();
     // Special case: if a 2-channel DDS RG or YA?

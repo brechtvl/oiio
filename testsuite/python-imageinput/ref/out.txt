@@ -8,7 +8,6 @@ Opened "../oiio-images/tahoe-gps.jpg" as a jpeg
   alpha channel =  -1
   z channel =  -1
   deep =  False
-  oiio:ColorSpace = "srgb_rec709_scene"
   jpeg:subsampling = "4:2:0"
   Make = "HTC"
   Model = "T-Mobile G1"
@@ -39,6 +38,7 @@ Opened "../oiio-images/tahoe-gps.jpg" as a jpeg
   thumbnail_width = 320
   thumbnail_height = 240
   thumbnail_nchannels = 3
+  oiio:ColorSpace = "srgb_rec709_scene"
 
 Opened "grid.tx" as a tiff
   resolution 1024x1024+0+0

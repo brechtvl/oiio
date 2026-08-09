@@ -468,7 +468,7 @@ TGAInput::read_tga2_header()
             if (bigendian())
                 swap_endian(&buf.s[0], 2);
             float gamma = (float)buf.s[0] / (float)buf.s[1];
-            set_colorspace_rec709_gamma(m_spec, gamma);
+            m_spec.attribute("oiio:Gamma", gamma);
         }
 
         // offset to colour correction table
@@ -523,6 +523,8 @@ TGAInput::read_tga2_header()
     // FIXME: provide access to the developer area; according to Larry,
     // it's probably safe to ignore it altogether until someone complains
     // that it's missing :)
+
+    m_spec.resolve_colorspace();
 
     return true;
 }
@@ -686,7 +688,8 @@ TGAInput::get_thumbnail(ImageBuf& thumb, int subimage)
         // the thumbnail is in the same format as the main image but
         // uncompressed.
         ImageSpec thumbspec(res[0], res[1], m_spec.nchannels, TypeUInt8);
-        thumbspec.set_colorspace("srgb_rec709_scene");
+        thumbspec.attribute("oiio:FileColorSpace", "sRGB");
+        thumbspec.resolve_colorspace();
         thumb.reset(thumbspec);
         int bytespp    = (m_tga.bpp == 15) ? 2 : (m_tga.bpp / 8);
         int palbytespp = (m_tga.cmap_size == 15) ? 2 : (m_tga.cmap_size / 8);
@@ -736,7 +739,9 @@ TGAInput::get_thumbnail(ImageBuf& thumb, int subimage)
                     break;
                 }
             if (!alpha0_everywhere) {
-                float gamma = m_spec.get_float_attribute("oiio:Gamma", 1.0f);
+                float gamma = get_colorspace_rec709_gamma(m_spec);
+                if (gamma == 0.0f)
+                    gamma = 1.0f;
                 associateAlpha(tpx, size, thumbspec.nchannels,
                                m_spec.alpha_channel, gamma);
             }
@@ -926,7 +931,9 @@ TGAInput::readimg()
             }
         }
         if (!alpha0_everywhere) {
-            float gamma = m_spec.get_float_attribute("oiio:Gamma", 1.0f);
+            float gamma = get_colorspace_rec709_gamma(m_spec);
+            if (gamma == 0.0f)
+                gamma = 1.0f;
             associateAlpha((unsigned char*)m_buf.get(), size, m_spec.nchannels,
                            m_spec.alpha_channel, gamma);
         }

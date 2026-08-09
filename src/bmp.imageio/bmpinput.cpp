@@ -263,7 +263,8 @@ BmpInput::open(const std::string& name, ImageSpec& newspec,
     // Default presumption is that a BMP file is meant to look reasonable on a
     // display, so assume it's sRGB. This is not really correct -- see the
     // comments below.
-    m_spec.attribute("oiio:ColorSpace", "srgb_rec709_scene");
+    m_spec.attribute("oiio:FileColorSpace", "sRGB");
+    m_spec.resolve_colorspace();
 #if 0
     if (m_dib_header.size >= WINDOWS_V4
         && m_dib_header.cs_type == CSType::CalibratedRGB) {

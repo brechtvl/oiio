@@ -8,7 +8,6 @@ Opened "../oiio-images/tahoe-gps.jpg" as a jpeg
   alpha channel =  -1
   z channel =  -1
   deep =  False
-  oiio:ColorSpace = "srgb_rec709_scene"
   jpeg:subsampling = "4:2:0"
   Make = "HTC"
   Model = "T-Mobile G1"
@@ -36,6 +35,7 @@ Opened "../oiio-images/tahoe-gps.jpg" as a jpeg
   GPS:TimeStamp = (17.0, 56.0, 33.0)
   GPS:MapDatum = "WGS-84"
   GPS:DateStamp = "1915:08:08"
+  oiio:ColorSpace = "srgb_rec709_scene"
 
 Opened "grid.tx" as a tiff
   resolution 1024x1024+0+0

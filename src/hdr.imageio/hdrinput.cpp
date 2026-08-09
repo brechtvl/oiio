@@ -306,7 +306,7 @@ HdrInput::RGBE_ReadHeader()
     if (!line.size())
         return false;
 
-    m_spec.set_colorspace("lin_rec709_scene");
+    m_spec.attribute("oiio:FileColorSpace", "lin_rec709_scene");
     // presume linear w/ srgb primaries -- seems like the safest assumption
     // for this old file format.
 
@@ -320,7 +320,7 @@ HdrInput::RGBE_ReadHeader()
             /* LG says no:    break;       // format found so break out of loop */
         } else if (Strutil::parse_values(line, "GAMMA=", span<float>(tempf))) {
             float g = float(1.0 / tempf);
-            set_colorspace_rec709_gamma(m_spec, g);
+            m_spec.attribute("oiio:Gamma", g);
         } else if (Strutil::parse_values(line,
                                          "EXPOSURE=", span<float>(tempf))) {
             m_spec.attribute("hdr:exposure", tempf);
@@ -373,6 +373,8 @@ HdrInput::RGBE_ReadHeader()
         return false;
     }
     m_spec.attribute("Orientation", orientation);
+
+    m_spec.resolve_colorspace();
 
     return true;
 }

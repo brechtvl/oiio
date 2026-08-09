@@ -823,12 +823,11 @@ OpenEXRCoreInput::PartInfo::parse_header(OpenEXRCoreInput* in,
 
     spec.attribute("oiio:subimages", in->m_nsubimages);
 
-    // Try to figure out the color space for some unambiguous cases
+    // Set color interop ID to be used by resolve_colorspace()
     if (spec.get_int_attribute("acesImageContainerFlag") == 1) {
-        spec.set_colorspace("lin_ap0_scene");
-    } else if (auto c = spec.find_attribute("colorInteropID", TypeString)) {
-        spec.set_colorspace(c->get_ustring());
+        spec.attribute("colorInteropID", "lin_ap0_scene");
     }
+    spec.resolve_colorspace();
 
     // Squash some problematic texture metadata if we suspect it's wrong
     pvt::check_texture_metadata_sanity(spec);

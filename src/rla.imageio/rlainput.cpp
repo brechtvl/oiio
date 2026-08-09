@@ -424,7 +424,7 @@ RLAInput::seek_subimage(int subimage, int miplevel)
 
     float gamma = Strutil::from_string<float>(m_rla.Gamma);
     if (gamma > 0.f) {
-        set_colorspace_rec709_gamma(m_spec, gamma);
+        m_spec.attribute("oiio:Gamma", gamma);
     }
 
     float aspect = Strutil::stof(m_rla.AspectRatio);
@@ -479,6 +479,8 @@ RLAInput::seek_subimage(int subimage, int miplevel)
     }
 
     m_subimage = subimage;
+
+    m_spec.resolve_colorspace();
 
     // N.B. the file pointer is now immediately after the scanline
     // offset table for this subimage.

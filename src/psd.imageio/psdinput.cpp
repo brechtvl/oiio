@@ -2108,6 +2108,8 @@ PSDInput::setup()
         if (m_keep_unassociated_alpha)
             spec.attribute("oiio:UnassociatedAlpha", 1);
 
+    spec.resolve_colorspace();
+
     // Composite channels
     m_channels.reserve(m_subimage_count);
     m_channels.resize(1);
@@ -2136,6 +2138,8 @@ PSDInput::setup()
         if (spec.alpha_channel != -1)
             if (m_keep_unassociated_alpha)
                 spec.attribute("oiio:UnassociatedAlpha", 1);
+
+        spec.resolve_colorspace();
 
         m_channels.resize(m_channels.size() + 1);
         std::vector<ChannelInfo*>& channels = m_channels.back();

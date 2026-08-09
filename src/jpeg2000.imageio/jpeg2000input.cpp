@@ -376,7 +376,8 @@ Jpeg2000Input::ojph_read_header()
     m_spec = ImageSpec(w, h, ch, dtype);
     m_spec.default_channel_names();
     m_spec.attribute("oiio:BitsPerSample", siz.get_bit_depth(0));
-    m_spec.set_colorspace("srgb_rec709_scene");
+    m_spec.attribute("oiio:FileColorSpace", "sRGB");
+    m_spec.resolve_colorspace();
 
     return true;
 }
@@ -689,7 +690,8 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& p_spec)
     }
 
     m_spec.attribute("oiio:BitsPerSample", maxPrecision);
-    m_spec.set_colorspace("srgb_rec709_scene");
+    m_spec.attribute("oiio:FileColorSpace", "sRGB");
+    m_spec.resolve_colorspace();
 
     if (m_image->icc_profile_len && m_image->icc_profile_buf) {
         m_spec.attribute("ICCProfile",
@@ -755,7 +757,9 @@ Jpeg2000Input::read_native_scanline(int subimage, int miplevel, int y, int z,
     // JPEG2000 specifically dictates unassociated (un-"premultiplied") alpha.
     // Convert to associated unless we were requested not to do so.
     if (m_spec.alpha_channel != -1 && !m_keep_unassociated_alpha) {
-        float gamma = m_spec.get_float_attribute("oiio:Gamma", 2.2f);
+        float gamma = get_colorspace_rec709_gamma(m_spec);
+        if (gamma == 0.0f)
+            gamma = 2.2f;
         if (m_spec.format == TypeDesc::UINT16)
             j2k_associateAlpha((unsigned short*)data, m_spec.width,
                                m_spec.nchannels, m_spec.alpha_channel, gamma);

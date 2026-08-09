@@ -898,6 +898,28 @@ public:
     /// @version 2.5
     void set_colorspace(string_view name);
 
+    /// Assign "oiio:ColorSpace" metadata from the raw color metadata provided
+    /// by the reader. A color interop ID will be set if there exists a matching
+    /// one. Readers call this function with default arguments.
+    ///
+    /// Metadata priority is as follows:
+    ///  1. "colorInteropID" attribute
+    ///  2. "CICP" attribute
+    ///  3. "oiio::Gamma" attribute (for Rec.709)
+    ///  4. "oiio:FileColorSpace" attribute
+    ///
+    /// When `erase_conflicting_metadata` is true, the raw color metadata this
+    /// was derived from is removed, since it may contradict the color space
+    /// that was resolved. Pass false to keep it, which allows the color space
+    /// to be resolved again.
+    ///
+    /// When `image_state_default` is set to "scene" or "display", prefer a
+    /// scene or display referred colorspace if color metadata is ambiguous.
+    ///
+    /// @version 3.2
+    void resolve_colorspace(bool erase_conflicting_metadata = true,
+                            string_view image_state_default = "scene");
+
     /// Returns `true` for a newly initialized (undefined) `ImageSpec`.
     /// (Designated by no channels and undefined data type -- true of the
     /// uninitialized state of an ImageSpec, and presumably not for any
@@ -1215,8 +1237,8 @@ public:
     }
     /// Open the ImageInput using a UTF-16 encoded wstring filename.
     OIIO_NODISCARD_ERROR bool open (const std::wstring& name, ImageSpec &newspec,
-                                    const ImageSpec& config OIIO_MAYBE_UNUSED) {
-        return open(name,newspec);
+                                    const ImageSpec& config) {
+        return open(Strutil::utf16_to_utf8(name), newspec, config);
     }
 
     /// Return a reference to the image specification of the current
@@ -4385,7 +4407,8 @@ OIIO_API void set_colorspace_rec709_gamma(ImageSpec& spec, float gamma);
 ///
 /// @version 3.1
 OIIO_API bool is_colorspace_srgb(const ImageSpec& spec,
-                                 bool default_to_srgb = true);
+                                 bool default_to_srgb = true,
+                                 const ColorConfig* config = nullptr);
 
 /// If the metadata of the `spec` specifies a color space with Rec709
 /// primaries and gamma transfer function, return the gamma value. If not,

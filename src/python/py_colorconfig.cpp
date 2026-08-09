@@ -185,6 +185,13 @@ declare_colorconfig(py_module& m)
              [](const ColorConfig& self, const std::array<int, 4> cicp) {
                  return std::string(self.get_color_interop_id(cicp.data()));
              })
+        .def("get_color_interop_id",
+             [](const ColorConfig& self, const std::array<int, 4> cicp,
+                const std::string& image_state_default) {
+                 return std::string(
+                     self.get_color_interop_id(cicp.data(),
+                                               image_state_default));
+             })
         .def("get_cicp",
              [](const ColorConfig& self, const std::string& colorspace)
                  -> std::optional<std::array<int, 4>> {

@@ -10,6 +10,7 @@
 #ifndef OPENIMAGEIO_IMAGEIO_PVT_H
 #define OPENIMAGEIO_IMAGEIO_PVT_H
 
+#include <OpenImageIO/color.h>
 #include <OpenImageIO/imageio.h>
 #include <OpenImageIO/thread.h>
 #include <OpenImageIO/timer.h>

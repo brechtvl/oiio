@@ -347,7 +347,7 @@ HeifInput::seek_subimage(int subimage, int miplevel)
     if (m_bitdepth > 8) {
         m_spec.attribute("oiio:BitsPerSample", m_bitdepth);
     }
-    m_spec.set_colorspace("srgb_rec709_scene");
+    m_spec.attribute("oiio:FileColorSpace", "sRGB");
 
 #if LIBHEIF_HAVE_VERSION(1, 9, 0)
     // Read CICP. Have to use the C API to get it from the image handle,
@@ -374,11 +374,6 @@ HeifInput::seek_subimage(int subimage, int miplevel)
                                       int(nclx->matrix_coefficients),
                                       int(nclx->full_range_flag ? 1 : 0) };
                 m_spec.attribute("CICP", TypeDesc(TypeDesc::INT, 4), cicp);
-                const ColorConfig& colorconfig(
-                    ColorConfig::default_colorconfig());
-                string_view interop_id = colorconfig.get_color_interop_id(cicp);
-                if (!interop_id.empty())
-                    m_spec.attribute("oiio:ColorSpace", interop_id);
             }
             heif_nclx_color_profile_free(nclx);
         }
@@ -517,6 +512,8 @@ HeifInput::seek_subimage(int subimage, int miplevel)
             }
         }
     }
+
+    m_spec.resolve_colorspace();
 
     m_subimage = subimage;
     return true;

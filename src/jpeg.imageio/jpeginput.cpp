@@ -301,7 +301,7 @@ JpgInput::open(const std::string& name, ImageSpec& newspec)
     }
 
     // Assume JPEG is in sRGB unless the Exif or XMP tags say otherwise.
-    m_spec.set_colorspace("srgb_rec709_scene");
+    m_spec.attribute("oiio:FileColorSpace", "sRGB");
 
     if (m_cinfo.jpeg_color_space == JCS_CMYK)
         m_spec.attribute("jpeg:ColorSpace", "CMYK");
@@ -422,6 +422,8 @@ JpgInput::open(const std::string& name, ImageSpec& newspec)
     // https://developer.android.com/media/platform/hdr-image-format#signal_of_the_format
     if (m_spec.find_attribute("hdrgm:Version"))
         m_is_uhdr = read_uhdr(m_io);
+
+    m_spec.resolve_colorspace();
 
     newspec = m_spec;
     return true;

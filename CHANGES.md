@@ -43,6 +43,9 @@ Release 3.2 (target: Sept 2026?) -- compared to 3.1
     total-pixel-memory check.
     [#5297](https://github.com/AcademySoftwareFoundation/OpenImageIO/pull/5297) (3.2.0.4, 3.1.16.0)
 * Miscellaneous API changes:
+  - *color*: `decode_exif()` no longer sets `oiio:ColorSpace` from the Exif
+    `ColorSpace` tag. It now deposits an `oiio:FileColorSpace` hint, and the
+    color space is resolved by the new `ImageSpec::resolve_colorspace()`. (3.2.0.5)
   - *api*: Versioned namespace to preserve ABI compatibility between minor releases [#4869](https://github.com/AcademySoftwareFoundation/OpenImageIO/pull/4869) (3.2.0.0)
   - *ColorConfig*: New `isData()` API method to query if a color space is a data space; fix Python `isColorSpaceLinear()`. [#5191](https://github.com/AcademySoftwareFoundation/OpenImageIO/pull/5191) (3.2.0.3, 3.1.14.0)
   - *api*: `ImageSpec::size_t_safe()` and `ImageSpec::valid_tile_range()` are now annotated `OIIO_NODISCARD` to warn callers not to ignore their return values. [#5218](https://github.com/AcademySoftwareFoundation/OpenImageIO/pull/5218) (by @zoomhunter2010 / Hunter) (3.2.0.3)

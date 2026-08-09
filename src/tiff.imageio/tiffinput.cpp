@@ -1473,11 +1473,9 @@ TIFFInput::readspec(bool read_meta)
             }
             // Exif spec says that anything other than 0xffff==uncalibrated
             // should be interpreted to be sRGB.
-            if (m_spec.get_int_attribute("Exif:ColorSpace") != 0xffff)
-                m_spec.attribute("oiio:ColorSpace", "srgb_rec709_scene");
-            // NOTE: We must set "oiio:ColorSpace" explicitly, not call
-            // set_colorspace, or it will erase several other TIFF attribs we
-            // need to preserve.
+            if (m_spec.get_int_attribute("Exif:ColorSpace") != 0xffff) {
+                m_spec.attribute("oiio:FileColorSpace", "sRGB");
+            }
         }
         // TIFFReadEXIFDirectory seems to do something to the internal state
         // that requires a TIFFSetDirectory to set things straight again.
@@ -1595,6 +1593,8 @@ TIFFInput::readspec(bool read_meta)
     // Squash some problematic texture metadata if we suspect it's wrong
     pvt::check_texture_metadata_sanity(m_spec);
 
+    m_spec.resolve_colorspace();
+
     if (m_testopenconfig)  // open-with-config debugging
         m_spec.attribute("oiio:DebugOpenConfig!", 42);
 
@@ -1623,7 +1623,7 @@ TIFFInput::readspec_photometric()
                 m_spec.channelnames[1] = "M";
                 m_spec.channelnames[2] = "Y";
                 m_spec.channelnames[3] = "K";
-                m_spec.attribute("oiio:ColorSpace", "CMYK");
+                m_spec.attribute("oiio:FileColorSpace", "CMYK");
             } else {
                 // Silently convert to RGB
                 m_spec.nchannels = 3;
@@ -1632,7 +1632,7 @@ TIFFInput::readspec_photometric()
         } else {
             // Non-CMYK ink set
             m_spec.attribute("tiff:ColorSpace", "color separated");
-            m_spec.attribute("oiio:ColorSpace", "color separated");
+            m_spec.attribute("oiio:FileColorSpace", "color separated");
             m_raw_color = true;  // Conversion to RGB doesn't make sense
             const char* inknames = NULL;
             if (safe_tiffgetfield("tiff:InkNames", TIFFTAG_INKNAMES,
@@ -1737,7 +1737,7 @@ TIFFInput::readspec_photometric()
     // non-spectral color spaces, set the OIIO color space attribute to
     // the tiff:colorspace value.
     if (is_nonspectral && !m_use_rgba_interface) {
-        m_spec.attribute("oiio:ColorSpace",
+        m_spec.attribute("oiio:FileColorSpace",
                          m_spec.get_string_attribute("tiff:ColorSpace"));
     }
 

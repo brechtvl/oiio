@@ -414,11 +414,9 @@ JxlInput::open(const std::string& name, ImageSpec& newspec)
         const int cicp[4] = { color_primaries, color_encoding.transfer_function,
                               0 /* RGB */, 1 /* Full range */ };
         m_spec.attribute("CICP", TypeDesc(TypeDesc::INT, 4), cicp);
-        const ColorConfig& colorconfig(ColorConfig::default_colorconfig());
-        string_view interop_id = colorconfig.get_color_interop_id(cicp);
-        if (!interop_id.empty())
-            m_spec.attribute("oiio:ColorSpace", interop_id);
     }
+
+    m_spec.resolve_colorspace();
 
     newspec = m_spec;
     return true;

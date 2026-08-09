@@ -39,8 +39,6 @@ http://lists.openimageio.org/pipermail/oiio-dev-openimageio.org/2009-April/00065
 
 OIIO_PLUGIN_NAMESPACE_BEGIN
 
-#define CICP_ATTR "CICP"
-
 namespace PNG_pvt {
 
 static void
@@ -224,15 +222,12 @@ read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
     double gamma               = 0.0;
     bool has_known_colorspaces = false;
     if (png_get_sRGB(sp, ip, &srgb_intent)) {
-        spec.attribute("oiio:ColorSpace", "srgb_rec709_scene");
+        spec.attribute("oiio:FileColorSpace", "sRGB");
         has_known_colorspaces = true;
     } else if (png_get_gAMA(sp, ip, &gamma) && gamma > 0.0) {
         float g = float(1.0 / gamma);
-        set_colorspace_rec709_gamma(spec, g);
+        spec.attribute("oiio:Gamma", g);
         has_known_colorspaces = true;
-    } else {
-        // If there's no info at all, assume sRGB.
-        spec.attribute("oiio:ColorSpace", "srgb_rec709_scene");
     }
 
     if (png_get_valid(sp, ip, PNG_INFO_iCCP)) {
@@ -290,10 +285,11 @@ read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
                 pnginput->errorfmt("Could not decode Exif");
                 return false;
             }
-        } else if (has_known_colorspaces
-                   && Strutil::iequals(text_ptr[i].key, "oiio:ColorSpace")) {
-            // Older versions of OIIO wrote color space names like "Gamma2.2"
-            // here. Don't let them override known color spaces.
+        } else if (Strutil::iequals(text_ptr[i].key, "oiio:ColorSpace")) {
+            // Older versions of OIIO wrote color space names like this,
+            // fall back to this if no other colorspace info is available.
+            if (!has_known_colorspaces)
+                spec.attribute("oiio:FileColorSpace", text_ptr[i].text);
         } else {
             spec.attribute(text_ptr[i].key, text_ptr[i].text);
         }
@@ -339,11 +335,7 @@ read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
         png_byte pri = 0, trc = 0, mtx = 0, vfr = 0;
         if (png_get_cICP(sp, ip, &pri, &trc, &mtx, &vfr)) {
             const int cicp[4] = { pri, trc, mtx, vfr };
-            spec.attribute(CICP_ATTR, TypeDesc(TypeDesc::INT, 4), cicp);
-            const ColorConfig& colorconfig(ColorConfig::default_colorconfig());
-            string_view interop_id = colorconfig.get_color_interop_id(cicp);
-            if (!interop_id.empty())
-                spec.attribute("oiio:ColorSpace", interop_id);
+            spec.attribute("CICP", TypeDesc(TypeDesc::INT, 4), cicp);
         }
     }
 #endif
@@ -372,6 +364,10 @@ read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
         spec.attribute("oiio:UnassociatedAlpha", (int)1);
 
     // FIXME -- look for an XMP packet in an iTXt chunk.
+
+    if (!spec.find_attribute("oiio:FileColorSpace"))
+        spec.attribute("oiio:FileColorSpace", "sRGB");
+    spec.resolve_colorspace();
 
     return ok;
 }

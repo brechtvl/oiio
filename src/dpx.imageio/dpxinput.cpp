@@ -319,13 +319,14 @@ DPXInput::seek_subimage(int subimage, int miplevel)
     m_spec.attribute("oiio:subimages", (int)m_dpx.header.ImageElementCount());
 
     // image linearity
+    string_view colorspace;
     switch (m_dpx.header.Transfer(subimage)) {
-    case dpx::kLinear: m_spec.set_colorspace("lin_rec709_scene"); break;
-    case dpx::kLogarithmic: m_spec.set_colorspace("KodakLog"); break;
-    case dpx::kITUR709: m_spec.set_colorspace("srgb_rec709_scene"); break;
+    case dpx::kLinear: colorspace = "lin_rec709_scene"; break;
+    case dpx::kLogarithmic: colorspace = "KodakLog"; break;
+    case dpx::kITUR709: colorspace = "sRGB"; break;
     case dpx::kUserDefined:
         if (!std::isnan(m_dpx.header.Gamma()) && m_dpx.header.Gamma() != 0) {
-            set_colorspace_rec709_gamma(m_spec, float(m_dpx.header.Gamma()));
+            m_spec.attribute("oiio:Gamma", float(m_dpx.header.Gamma()));
             break;
         }
         // intentional fall-through
@@ -342,6 +343,10 @@ DPXInput::seek_subimage(int subimage, int miplevel)
         case dpx::kUndefinedCharacteristic:*/
     default: break;
     }
+    if (!colorspace.empty()) {
+        m_spec.attribute("oiio:FileColorSpace", colorspace);
+    }
+    m_spec.resolve_colorspace();
     m_spec.attribute("dpx:Transfer", get_characteristic_string(
                                          m_dpx.header.Transfer(subimage)));
     // colorimetric characteristic

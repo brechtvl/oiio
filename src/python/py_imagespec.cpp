@@ -275,6 +275,15 @@ declare_imagespec(py_module& m)
                 self.set_colorspace(cs);
             },
             "name"_a)
+        .def(
+            "resolve_colorspace",
+            [](ImageSpec& self, bool erase_conflicting_metadata,
+               const std::string& image_state_default) {
+                self.resolve_colorspace(erase_conflicting_metadata,
+                                        image_state_default);
+            },
+            "erase_conflicting_metadata"_a = true,
+            "image_state_default"_a        = "display")
         // __getitem__ is the dict-like `ImageSpec[key]` lookup
         .def("__getitem__",
              [](const ImageSpec& self, const std::string& key) {
