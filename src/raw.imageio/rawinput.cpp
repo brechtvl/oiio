@@ -613,6 +613,7 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
     const ColorConfig& colorconfig(ColorConfig::default_colorconfig());
     std::string cs = config.get_string_attribute("raw:ColorSpace",
                                                  "srgb_rec709_scene");
+    string_view interop_id;
     if (Strutil::iequals(cs, "raw")) {
         // Values straight from the chip
         m_processor->imgdata.params.output_color = 0;
@@ -624,6 +625,7 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
         m_processor->imgdata.params.output_color = 1;
         m_processor->imgdata.params.gamm[0]      = 1.0 / 2.4;
         m_processor->imgdata.params.gamm[1]      = 12.92;
+        interop_id                               = "srgb_rec709_scene";
     } else if (colorconfig.equivalent(cs, "lin_rec709_scene")
                || Strutil::iequals(cs, "sRGB-linear")
                || Strutil::iequals(cs, "lin_srgb")
@@ -633,12 +635,14 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
         m_processor->imgdata.params.output_color = 1;
         m_processor->imgdata.params.gamm[0]      = 1.0;
         m_processor->imgdata.params.gamm[1]      = 1.0;
-        cs                                       = "lin_rec709_scene";
-    } else if (Strutil::iequals(cs, "Adobe")) {
+        interop_id                               = "lin_rec709_scene";
+    } else if (Strutil::iequals(cs, "Adobe")
+               || Strutil::iequals(cs, "g22_adobergb_scene")) {
         // Request Adobe color space with 2.2 gamma (no linear toe)
         m_processor->imgdata.params.output_color = 2;
         m_processor->imgdata.params.gamm[0]      = 1.0 / 2.2;
         m_processor->imgdata.params.gamm[1]      = 0.0;
+        interop_id                               = "g22_adobergb_scene";
     } else if (Strutil::iequals(cs, "Wide")) {
         m_processor->imgdata.params.output_color = 3;
         m_processor->imgdata.params.gamm[0]      = 1.0;
@@ -653,29 +657,36 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
         m_processor->imgdata.params.output_color = 4;
         m_processor->imgdata.params.gamm[0]      = 1.0;
         m_processor->imgdata.params.gamm[1]      = 1.0;
-    } else if (Strutil::iequals(cs, "XYZ")) {
-        // XYZ linear
+    } else if (Strutil::iequals(cs, "XYZ")
+               || Strutil::iequals(cs, "lin_ciexyzd65_scene")) {
+        // XYZ linear, D65 white point
         m_processor->imgdata.params.output_color = 5;
         m_processor->imgdata.params.gamm[0]      = 1.0;
         m_processor->imgdata.params.gamm[1]      = 1.0;
-    } else if (Strutil::iequals(cs, "ACES")) {
+        interop_id                               = "lin_ciexyzd65_scene";
+    } else if (Strutil::iequals(cs, "ACES")
+               || Strutil::iequals(cs, "lin_ap0_scene")) {
         // ACES linear
         m_processor->imgdata.params.output_color = 6;
         m_processor->imgdata.params.gamm[0]      = 1.0;
         m_processor->imgdata.params.gamm[1]      = 1.0;
 #if LIBRAW_VERSION >= LIBRAW_MAKE_VERSION(0, 21, 0)
-    } else if (Strutil::iequals(cs, "DCI-P3")) {
-        // DCI-P3
+    } else if (Strutil::iequals(cs, "DCI-P3")
+               || Strutil::iequals(cs, "lin_p3d65_scene")) {
+        // DCI-P3, with D65 white point
         m_processor->imgdata.params.output_color = 7;
         m_processor->imgdata.params.gamm[0]      = 1.0;
         m_processor->imgdata.params.gamm[1]      = 1.0;
+        interop_id                               = "lin_p3d65_scene";
 #endif
-    } else if (Strutil::iequals(cs, "Rec2020")) {
+    } else if (Strutil::iequals(cs, "Rec2020")
+               || Strutil::iequals(cs, "lin_rec2020_scene")) {
 #if LIBRAW_VERSION >= LIBRAW_MAKE_VERSION(0, 21, 0)
         // Rec2020
         m_processor->imgdata.params.output_color = 8;
         m_processor->imgdata.params.gamm[0]      = 1.0;
         m_processor->imgdata.params.gamm[1]      = 1.0;
+        interop_id                               = "lin_rec2020_scene";
 #else
         errorfmt("raw:ColorSpace value of \"{}\" is not supported by libRaw {}",
                  cs, LIBRAW_VERSION_STR);
@@ -685,7 +696,7 @@ RawInput::open_raw(bool unpack, bool process, const std::string& name,
         errorfmt("raw:ColorSpace set to unknown value \"{}\"", cs);
         return false;
     }
-    m_spec.set_colorspace(cs);
+    m_spec.set_colorspace(!interop_id.empty() ? interop_id : string_view(cs));
 
     // Exposure adjustment
     float exposure = config.get_float_attribute("raw:Exposure", -1.0f);
